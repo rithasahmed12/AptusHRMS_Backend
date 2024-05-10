@@ -5,8 +5,8 @@ import { UserService } from './user.service';
 export class UserController {
     constructor(private userService:UserService){}
 
-    @Post('register')
-    register(@Body() signup:any ){
-        return this.userService.register(signup)
+    @Post('otp')
+    register(@Body() body:{email:string} ){
+        return this.userService.sendOTP(body)
     }
 }
