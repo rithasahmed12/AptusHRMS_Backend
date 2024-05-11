@@ -6,7 +6,14 @@ export class UserController {
     constructor(private userService:UserService){}
 
     @Post('otp')
-    register(@Body() body:{email:string} ){
+    sentOtp(@Body() body:{email:string} ){
         return this.userService.sendOTP(body)
     }
+
+    @Post('verifyOtp')
+    verifyOtp(@Body() body:{otp:number,email:string}){
+        return this.userService.verifyOtp(body)
+    }
+
+    
 }
