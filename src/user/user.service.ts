@@ -17,7 +17,7 @@ export class UserService {
   async sendOTP(body:{email:string}) {
     try {
         const {email} = body
-        const otp = Math.floor(1000 + Math.random() * 9000);
+        const otp:number = Math.floor(1000 + Math.random() * 9000);
         await this.mailerService.sendMail({
           to: email ,
           subject: 'Your One-Time Password',
