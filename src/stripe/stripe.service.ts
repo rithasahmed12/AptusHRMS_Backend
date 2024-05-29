@@ -1,47 +1,54 @@
-import { Injectable, Res } from '@nestjs/common';
-import { Response } from 'express';
+import { HttpException, HttpStatus, Injectable, Req, Res } from '@nestjs/common';
+import { Response, Request } from 'express';
 import Stripe from 'stripe';
+import { Order } from './schemas/order.schema';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import { json } from 'stream/consumers';
 
 @Injectable()
 export class StripeService {
   private stripe: Stripe;
+  private endpointSecret: string;
 
-  constructor() {
+  constructor(
+    @InjectModel('Order')
+    private readonly order: Model<Order>,
+  ) {
     if (!process.env.STRIPE_SECRET_KEY) {
       throw new Error('STRIPE_SECRET_KEY environment variable is not set');
     }
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    this.endpointSecret = 'whsec_34e1b82ca140f2ab81ed8a2562703fdf61ad48d647baec163116b9752ef9ab01';
+  }
+
+  // Filter out circular references
+  private filterCircularReferences(obj: any): any {
+    delete obj.socket;
+    delete obj.parser;
+
+    Object.keys(obj).forEach(key => {
+      if (typeof obj[key] === 'object' && obj[key]!== null) {
+        this.filterCircularReferences(obj[key]);
+      }
+    });
+
+    return obj;
   }
 
   async createStripeSessionSubscription(body, res) {
     try {
       let customer;
-      const userEmail = body.email;
+      const userEmail = body.customer.email;
       const auth0UserId = userEmail;
-      console.log('Received request body:', body);
 
-      // Validate incoming data
-      if (
-        !body.email ||
-        !body.product ||
-        !body.product.name ||
-        !body.product.description ||
-        !body.product.price
-      ) {
-        throw new Error('Missing required fields in request body');
-      }
-
-      // Try to retrieve an existing customer by email
       const existingCustomers = await this.stripe.customers.list({
         email: userEmail,
         limit: 1,
       });
 
       if (existingCustomers.data.length > 0) {
-        // Customer already exists, retrieve the customer ID
         customer = existingCustomers.data[0];
-
-        // Check if the customer already has an active subscription
         const subscriptions = await this.stripe.subscriptions.list({
           customer: customer.id,
           status: 'active',
@@ -49,7 +56,6 @@ export class StripeService {
         });
 
         if (subscriptions.data.length > 0) {
-          // Customer already has an active subscription, send them to billing portal to manage subscription
           const returnUrl = 'http://localhost:5173/purchase';
           if (!returnUrl) {
             throw new Error('return_url is required and cannot be empty');
@@ -59,28 +65,29 @@ export class StripeService {
             return_url: returnUrl,
           });
 
-          // Return a 409 Conflict status code and the redirectUrl
-          return res.status(409).json({ redirectUrl: stripeSession.url });
+          return res.status(409).json(this.filterCircularReferences({ redirectUrl: stripeSession.url }));
         }
       } else {
-        // No customer found, create a new one
         customer = await this.stripe.customers.create({
           email: userEmail,
-          metadata: {
-            userId: auth0UserId,
-          },
-          name: 'Jenny Rosen',
-          address: {
-            line1: '510 Townsend St',
-            postal_code: '98140',
-            city: 'San Francisco',
-            state: 'CA',
-            country: 'US',
-          },
+          
+  // product: {
+  //   id: '2',
+  //   name: 'Standard',
+  //   price: 2999,
+  //   description: '50 employees, 28 days'
+  // },
+  // customer: {
+  //   name: 'Rithas Ahamed',
+  //   mobile: '02112122121',
+  //   domain: 'sam',
+  //   email: 'ahmedrithas48@gmail.com',
+  //   password: 'Fullmode12@'
+  // }
+          name: body.customer.name,
         });
       }
 
-      // Now create the Stripe checkout session with the customer ID
       const session = await this.stripe.checkout.sessions.create({
         success_url: 'http://localhost:5173/purchase/success',
         cancel_url: 'http://localhost:5173/purchase/plan',
@@ -109,10 +116,49 @@ export class StripeService {
         customer: customer.id,
       });
 
-      return res.status(200).json({ id: session.id });
+      return res.status(200).json(this.filterCircularReferences({ id: session.id }));
     } catch (error) {
       console.error('Error creating Stripe session subscription:', error);
       throw new Error('Failed to create Stripe session subscription');
     }
+  }
+
+  async handleWebhookEvent(body: Buffer, signature: string, req:Request) {
+    let event;
+
+    try {
+      event = this.stripe.webhooks.constructEvent(body, signature, this.endpointSecret);
+      
+    } catch (err) {
+      console.error(`Webhook Error: ${err.message}`);
+      throw new Error(`Webhook Error: ${err.message}`);
+    }
+
+    switch (event.type) {
+      case 'invoice.payment_succeeded':
+        const session = event.data
+        await this.createOrder(session,req);
+        break;
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+  }
+
+  async createOrder(session,req) {
+    console.log("session:",session);
+
+    // Access the body from req.locals
+  const body = req.session.body;
+  console.log("body:", body);
+
+  // Create the order using the data from the session and body
+  const order = await this.order.create({
+    customer: session.customer,
+    amount: session.amount_total,
+    currency: session.currency,
+    // Add other relevant data from body or session
+    ...body.product,
+    ...body.customer,
+  });
   }
 }
