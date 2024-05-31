@@ -2,18 +2,18 @@ import { Body, Controller, Headers, Post, Req, Res, Session } from '@nestjs/comm
 import { Response } from 'express';
 import { StripeService } from './stripe.service';
 
-@Controller()
+@Controller('payment')
 export class StripeController {
   constructor(private readonly stripeService: StripeService) {}
 
-  @Post('/create-checkout-session')
+  @Post('checkout-session')
   async createStripeSessionSubscription(
+    @Req() req:any,
     @Res() res: Response,
-     @Body() body: any,
-     @Session() session: Record<string, any>
+     @Body() body: any
     ) {
 
-      session.body = body;  
+    req.app.locals.body = body;  
 
     const result = await this.stripeService.createStripeSessionSubscription(body, res);
 
@@ -23,7 +23,7 @@ export class StripeController {
     res.json(result);
   }
 
-  @Post('/webhook')
+  @Post('webhook')
   async handleWebhook(
     @Req() req: any,
     @Res() res: Response,

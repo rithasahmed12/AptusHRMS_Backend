@@ -3,7 +3,9 @@ import { StripeController } from './stripe.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { StripeService } from './stripe.service';
 import { OrderSchema } from './schemas/order.schema';
-// import { RawBodyMiddleware } from './middleware/raw-body.middleware';
+import { RawBodyMiddleware } from './middleware/raw-body.middleware';
+import { JsonBodyMiddleware } from './middleware/json-body.middleware';
+
 
 
 
@@ -14,5 +16,16 @@ import { OrderSchema } from './schemas/order.schema';
   controllers: [StripeController],
   providers: [StripeService]
 })
-export class StripeModule {}
+export class StripeModule implements NestModule {
+  public configure(consumer: MiddlewareConsumer): void {
+      consumer
+          .apply(RawBodyMiddleware)
+          .forRoutes({
+              path: '/payment/webhook',
+              method: RequestMethod.POST,
+          })
+          .apply(JsonBodyMiddleware)
+          .forRoutes('*');
+  }
+}
 
