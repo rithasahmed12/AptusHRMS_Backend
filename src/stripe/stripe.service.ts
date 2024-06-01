@@ -144,6 +144,8 @@ export class StripeService {
   async createOrder(req) {
     const body = req.app.locals.body;
 
+    req.app.locals.body = null;
+
     await this.order.create({
       username: body.customer.name,
       phone: Number(body.customer.mobile),

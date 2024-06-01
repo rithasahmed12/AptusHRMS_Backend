@@ -38,7 +38,6 @@ export class UserService {
         console.error('Error sending OTP:', error);
         return { success: false, message: 'Failed to send OTP' };
     }
- 
   }
 
   async verifyOtp(body:{otp:number,email:string}){
