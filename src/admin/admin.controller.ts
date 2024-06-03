@@ -14,7 +14,7 @@ export class AdminController {
     async adminLogin(
         @Body() adminLoginDto: AdminLoginDto,
         @Res({ passthrough: true }) response: Response,
-    ) {
+    ) { 
         return await this.adminService.adminLogin(adminLoginDto, response);
     }
 
