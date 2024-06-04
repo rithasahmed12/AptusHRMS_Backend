@@ -2,7 +2,7 @@ import { Module, MiddlewareConsumer, NestModule, RequestMethod } from '@nestjs/c
 import { StripeController } from './stripe.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { StripeService } from './stripe.service';
-import { OrderSchema } from './schemas/order.schema';
+import { Order, OrderSchema } from './schemas/order.schema';
 import { RawBodyMiddleware } from './middleware/raw-body.middleware';
 import { JsonBodyMiddleware } from './middleware/json-body.middleware';
 
@@ -14,7 +14,8 @@ import { JsonBodyMiddleware } from './middleware/json-body.middleware';
     MongooseModule.forFeature([{ name: 'Order', schema: OrderSchema }]),
   ],
   controllers: [StripeController],
-  providers: [StripeService]
+  providers: [StripeService],
+  exports: [MongooseModule],
 })
 export class StripeModule implements NestModule {
   public configure(consumer: MiddlewareConsumer): void {
@@ -29,3 +30,4 @@ export class StripeModule implements NestModule {
   }
 }
 
+export { Order }; 

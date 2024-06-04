@@ -23,6 +23,7 @@ export class StripeController {
     res.json(result);
   }
 
+  // stripe listen --forward-to localhost:3001/payment/webhook
   @Post('webhook')
   async handleWebhook(
     @Req() req: any,

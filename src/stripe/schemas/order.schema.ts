@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
+import { ServiceStatus } from "../interface/enums";
 
 @Schema({ timestamps: true })
 export class Order extends Document {
@@ -30,8 +31,11 @@ export class Order extends Document {
   @Prop()
   plan: string;
 
-  @Prop({ type: Boolean, default: false })
-  service_status: boolean;
+  @Prop()
+  price:string;
+  
+  @Prop({ type: String, enum: ServiceStatus, default: ServiceStatus.Pending })
+  service_status: ServiceStatus;
 
   @Prop({ type: Boolean, default: false })
   is_approved: boolean;

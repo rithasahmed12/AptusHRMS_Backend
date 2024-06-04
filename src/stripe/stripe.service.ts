@@ -158,6 +158,7 @@ export class StripeService {
         Date.now() + body.product.duration * 24 * 60 * 60 * 1000,
       ),
       plan: body.product.name,
+      price:body.product.price
     });
   }
 }

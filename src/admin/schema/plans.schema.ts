@@ -14,6 +14,9 @@ export class Plans extends Document {
 
   @Prop()
   max_employees: number;
+
+  @Prop({ type: Boolean, default: true })
+  is_listed: boolean;
 }
 
 export const PlanSchema = SchemaFactory.createForClass(Plans);
