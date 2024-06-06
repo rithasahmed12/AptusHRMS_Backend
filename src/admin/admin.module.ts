@@ -5,7 +5,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { LocalStrategy } from './strategies/local-strategies';
 import { StripeModule } from '../stripe/stripe.module'; 
 import { MongooseModule } from '@nestjs/mongoose';
-import { PlanSchema } from './schema/plans.schema';
+import { PlanSchema, Plans } from './schema/plans.schema';
+
 
 @Module({
   providers: [AdminService, LocalStrategy],
@@ -16,6 +17,9 @@ import { PlanSchema } from './schema/plans.schema';
   }),
   StripeModule,
   MongooseModule.forFeature([{name:"Plans",schema:PlanSchema}])],
+  exports:[MongooseModule]
   
 })
 export class AdminModule {}
+
+export {Plans}

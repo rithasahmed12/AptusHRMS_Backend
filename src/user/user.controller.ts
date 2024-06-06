@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { UserService } from './user.service';
 
 @Controller('user')
@@ -13,6 +13,11 @@ export class UserController {
     @Post('verifyOtp')
     verifyOtp(@Body() body:{otp:number,email:string}){
         return this.userService.verifyOtp(body)
+    }
+
+    @Get('plan')
+    async getPlans(){
+        return this.userService.getPlans();
     }
 
     

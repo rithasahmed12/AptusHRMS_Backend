@@ -5,6 +5,7 @@ import { Order } from './schemas/order.schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 
+
 @Injectable()
 export class StripeService {
   private stripe: Stripe;
@@ -92,10 +93,10 @@ export class StripeService {
             price_data: {
               currency: 'inr',
               product_data: {
-                name: `${body.product.name} Plan`,
-                description: body.product.description,
+                name: `${body.product.plan_name} Plan`,
+                description: `${body.product.max_employees} employees, ${body.product.duration} days`,
               },
-              unit_amount: body.product.price * 100,
+              unit_amount: body.product.plan_price * 100,
               recurring: {
                 interval: 'month',
               },

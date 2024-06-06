@@ -8,7 +8,7 @@ export class JwtGuard extends AuthGuard('adminJwt') {
     const request = context.switchToHttp().getRequest();
     const token = request.cookies.adminJwt;
    
-    console.log('token:', token);
+    // console.log('token:', token);
     
     if (!token) {
       return false;

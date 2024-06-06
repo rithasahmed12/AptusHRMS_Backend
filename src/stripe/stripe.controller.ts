@@ -13,6 +13,9 @@ export class StripeController {
      @Body() body: any
     ) {
 
+      console.log(body);
+      
+
     req.app.locals.body = body;  
 
     const result = await this.stripeService.createStripeSessionSubscription(body, res);

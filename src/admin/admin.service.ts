@@ -7,6 +7,7 @@ import { Model } from 'mongoose';
 import { Order } from '../stripe/schemas/order.schema';
 import { Plans } from './schema/plans.schema';
 import { CreatePlansDto } from './dto/createPlans.dto';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class AdminService {
@@ -14,6 +15,7 @@ export class AdminService {
         private jwtService: JwtService,
         @InjectModel(Order.name) private orderModel: Model<Order>,
         @InjectModel(Plans.name) private plansModel: Model<Plans>,
+        private readonly mailerService:MailerService,
     ) {}
 
     async validateAdmin(adminLoginDto: AdminLoginDto) {
@@ -54,10 +56,50 @@ export class AdminService {
             { is_approved: true , service_status:"Approved" },
             { new: true }
           );
+
+          this.sentApprovalMail(updatedOrder)
       
           if (!updatedOrder) {
             throw new Error('Order not found');
           }
+    }
+
+    async sentApprovalMail(user:Order){
+      const domain = `${user.company_name.replace(/\s/g, '_')}.localhost/5173`;
+
+      await this.mailerService.sendMail({
+        to: user.email,
+        subject: 'Your Request Has Been Approved',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+            <header style="text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 20px; margin-bottom: 20px;">
+              <h1 style="color: #734c4c;">Request Approved</h1>
+            </header>
+            <main>
+              <p style="font-size: 16px; margin-bottom: 20px;">Dear ${user.username},</p>
+              <p style="font-size: 16px; margin-bottom: 20px;">
+                We are pleased to inform you that your request has been approved.
+              </p>
+              <p style="font-size: 16px; margin-bottom: 20px;">
+                Here are your account details:
+              </p>
+              <span style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: #734c4c;">Domain:</span>
+              <a href="${domain}" style="color: #734c4c; text-decoration: underline;">${domain}</a>
+              <p style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: #734c4c;">Email: ${user.email}</p>
+              <p style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: #734c4c;">Password: ${user.password}</p>
+              <p style="font-size: 16px; margin-bottom: 20px;">
+                Please use these credentials to access your account.
+              </p>
+              <p style="font-size: 16px; margin-bottom: 20px;">Regards,</p>
+              <p style="font-size: 16px; font-weight: bold;">Your Company</p>
+            </main>
+            <footer style="border-top: 1px solid #ddd; padding-top: 20px; margin-top: 20px; text-align: center;">
+              <p style="font-size: 14px; color: #999;">If you have any questions, please contact our support team.</p>
+              <p style="font-size: 14px; color: #999;">&copy; 2024 Your Company. All rights reserved.</p>
+            </footer>
+          </div>
+        `,
+      }); 
     }
 
     async declineRequest(id:string){
@@ -66,10 +108,44 @@ export class AdminService {
             { service_status:"Declined" },
             { new: true }
           );
+
+          this.sendDeclineMail(updatedOrder);
       
           if (!updatedOrder) {
             throw new Error('Order not found');
           }
+    }
+
+    async sendDeclineMail(user: Order) {
+      await this.mailerService.sendMail({
+        to: user.email,
+        subject: 'Purchase Decline Request',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+            <header style="text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 20px; margin-bottom: 20px;">
+              <h1 style="color: #734c4c;">Purchase Decline Request</h1>
+            </header>
+            <main>
+              <p style="font-size: 16px; margin-bottom: 20px;">Dear ${user.username},</p>
+              <p style="font-size: 16px; margin-bottom: 20px;">
+                We regret to inform you that your recent purchase request has been declined.
+              </p>
+              <p style="font-size: 16px; margin-bottom: 20px;">
+                Your payment will be declined within 2 to 4 business days. You may need to verify your payment details or try another payment method.
+              </p>
+              <p style="font-size: 16px; margin-bottom: 20px;">
+                If you have any questions or need further assistance, please contact our support team.
+              </p>
+              <p style="font-size: 16px; margin-bottom: 20px;">Regards,</p>
+              <p style="font-size: 16px; font-weight: bold;">AptusHr</p>
+            </main>
+            <footer style="border-top: 1px solid #ddd; padding-top: 20px; margin-top: 20px; text-align: center;">
+              <p style="font-size: 14px; color: #999;">If you have any questions, please contact our support team.</p>
+              <p style="font-size: 14px; color: #999;">&copy; 2024 Your Company. All rights reserved.</p>
+            </footer>
+          </div>
+        `,
+      });
     }
 
     async getCustomers(){
