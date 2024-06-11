@@ -7,6 +7,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { StripeModule } from './stripe/stripe.module';
 import { AdminModule } from './admin/admin.module';
+import { TenantModule } from './tenant/tenant.module';
 
 
 @Module({
@@ -27,10 +28,16 @@ import { AdminModule } from './admin/admin.module';
       },
     }),
     ConfigModule.forRoot({ envFilePath: '.env', isGlobal: true }),
-    MongooseModule.forRoot(process.env.DB_URI),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (config) => ({
+        uri:`${process.env.DB_URI}`,
+      }),
+    }),
     UserModule,
     StripeModule,
     AdminModule,
+    TenantModule,
   ],
   controllers: [AppController],
   providers: [AppService],

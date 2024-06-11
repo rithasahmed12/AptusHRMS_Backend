@@ -6,6 +6,7 @@ import { LocalStrategy } from './strategies/local-strategies';
 import { StripeModule } from '../stripe/stripe.module'; 
 import { MongooseModule } from '@nestjs/mongoose';
 import { PlanSchema, Plans } from './schema/plans.schema';
+import { TenantModule } from 'src/tenant/tenant.module';
 
 
 @Module({
@@ -16,7 +17,9 @@ import { PlanSchema, Plans } from './schema/plans.schema';
     signOptions: { expiresIn: '3600s' },
   }),
   StripeModule,
-  MongooseModule.forFeature([{name:"Plans",schema:PlanSchema}])],
+  MongooseModule.forFeature([{name:"Plans",schema:PlanSchema}]),
+  TenantModule
+],
   exports:[MongooseModule]
   
 })
