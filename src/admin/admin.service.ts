@@ -102,7 +102,7 @@ export class AdminService {
   }
 
   async sentApprovalMail(user: Order,tenantId:string) {
-    const domain = `${user.company_name.replace(/\s/g, '_')}.localhost/5173`;
+    const domain = `http://${user.company_name.replace(/\s/g, '_')}.localhost:5173/`;
 
     await this.mailerService.sendMail({
       to: user.email,

@@ -42,4 +42,18 @@ export class TenantService {
       throw new InternalServerErrorException('Failed to create tenant');
     }
   }
+
+  async getTenantById(tenantId: string): Promise<Tenant | null> {
+    return this.tenantModel.findOne({ tenantId }).exec();
+  }
+
+  async getTenantDatabase(tenantId: string, companyName: string): Promise<Connection> {
+    const tenant = await this.tenantModel.findOne({ tenantId, companyName }).exec();
+    console.log('Tenant:',tenant);
+    
+    if (!tenant) {
+      throw new InternalServerErrorException('Tenant not found');
+    }
+    return this.connection.useDb(tenant.tenantId, { useCache: true });
+  }
 }

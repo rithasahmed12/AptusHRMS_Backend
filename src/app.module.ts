@@ -8,26 +8,27 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { StripeModule } from './stripe/stripe.module';
 import { AdminModule } from './admin/admin.module';
 import { TenantModule } from './tenant/tenant.module';
+import { CompanyModule } from './company/company.module';
 
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ envFilePath: '.env', isGlobal: true }),
     MailerModule.forRoot({
       transport: {
         host: 'smtp.gmail.com',
         port:465,
         secure:true,
         auth: {
-          user: 'assassinpg48@gmail.com',
-          pass: 'fxky vyqu iotj dgzl',
+          user: `${process.env.SENDER_EMAIL}`,
+          pass: `${process.env.SENDER_PASS}`,
         },
         tls: {
-          rejectUnauthorized: false, // Allow self-signed certificates
-          ciphers: 'SSLv3', // Set the SSL/TLS version explicitly
+          rejectUnauthorized: false,
+          ciphers: 'SSLv3', 
         },
       },
     }),
-    ConfigModule.forRoot({ envFilePath: '.env', isGlobal: true }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (config) => ({
@@ -38,6 +39,7 @@ import { TenantModule } from './tenant/tenant.module';
     StripeModule,
     AdminModule,
     TenantModule,
+    CompanyModule,
   ],
   controllers: [AppController],
   providers: [AppService],
