@@ -10,7 +10,8 @@ export class CompanyService {
   async login(tenantId: string, domain: string, email: string, password: string): Promise<any> {
     try {
       const tenantDb: Connection = await this.tenantService.getTenantDatabase(tenantId, domain);
-      const userModel = tenantDb.model('User', UserSchema); 
+      
+      const userModel = tenantDb.models.User || tenantDb.model('User', UserSchema);
         
       const user = await userModel.findOne({ email }).exec();
       if (!user || user.password !== password) { 
@@ -22,7 +23,9 @@ export class CompanyService {
         if (error instanceof UnauthorizedException) {
             throw error;  // Rethrow the original UnauthorizedException
           }
-      throw new UnauthorizedException('Login failed');
+          console.log(error);
+          
+      throw new UnauthorizedException("Login Failed!",error);
     }
   }
 }

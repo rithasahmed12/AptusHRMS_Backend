@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -39,9 +37,7 @@ import { CompanyModule } from './company/company.module';
     StripeModule,
     AdminModule,
     TenantModule,
-    CompanyModule,
+    CompanyModule
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

@@ -33,8 +33,8 @@ export class AdminController {
 
     @UseGuards(JwtGuard)
     @Patch('declineRequest/:id')
-    async declineRequest(@Param('id') id: string) {
-      return this.adminService.declineRequest(id);
+    async declineRequest(@Param('id') id: string,@Body('reason') reason: string) {
+      return this.adminService.declineRequest(id,reason);
     }
 
     @UseGuards(JwtGuard)

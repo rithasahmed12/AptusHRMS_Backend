@@ -140,7 +140,7 @@ export class AdminService {
     });
   }
 
-  async declineRequest(id: string) {
+  async declineRequest(id: string,reason:string) {
     const updatedOrder = await this.orderModel.findByIdAndUpdate(
       id,
       { service_status: 'Declined' },
@@ -151,10 +151,10 @@ export class AdminService {
       throw new NotFoundException('Order not found');
     }
 
-    this.sendDeclineMail(updatedOrder);
+    this.sendDeclineMail(updatedOrder,reason);
   }
 
-  async sendDeclineMail(user: Order) {
+  async sendDeclineMail(user: Order, declineReason: string) {    
     await this.mailerService.sendMail({
       to: user.email,
       subject: 'Purchase Decline Request',
@@ -172,6 +172,9 @@ export class AdminService {
               Your payment will be declined within 2 to 4 business days. You may need to verify your payment details or try another payment method.
             </p>
             <p style="font-size: 16px; margin-bottom: 20px;">
+              <strong>Reason for Decline:</strong> ${declineReason}
+            </p>
+            <p style="font-size: 16px; margin-bottom: 20px;">
               If you have any questions or need further assistance, please contact our support team.
             </p>
             <p style="font-size: 16px; margin-bottom: 20px;">Regards,</p>
@@ -185,6 +188,7 @@ export class AdminService {
       `,
     });
   }
+  
 
   async getCustomers() {
     return this.orderModel.find({ service_status: 'Approved' }).sort({ updatedAt: -1 }).exec();

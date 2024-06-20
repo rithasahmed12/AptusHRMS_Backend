@@ -145,6 +145,9 @@ export class StripeService {
   async createOrder(req) {
     const body = req.app.locals.body;
 
+    console.log('body:',body);
+    
+
     req.app.locals.body = null;
 
     await this.order.create({
@@ -158,8 +161,8 @@ export class StripeService {
       expiry_date: new Date(
         Date.now() + body.product.duration * 24 * 60 * 60 * 1000,
       ),
-      plan: body.product.name,
-      price:body.product.price
+      plan: body.product.plan_name,
+      price:body.product.plan_price
     });
   }
 }

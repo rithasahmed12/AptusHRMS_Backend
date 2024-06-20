@@ -7,6 +7,8 @@ export class TenantMiddleware implements NestMiddleware {
   constructor(private readonly tenantService: TenantService) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
+    console.log('req.headers:',req.headers);
+    
     const tenantId = req.headers['x-tenant-id'];
     const companyName = req.headers['x-domain'];
 

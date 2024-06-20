@@ -2,13 +2,14 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
+import checkOrigin from './checkOrigin';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule,{bodyParser:false});
 
   app.use(cookieParser());
   app.enableCors({
-    origin: 'http://localhost:5173', // Your frontend origin
+    origin: checkOrigin, // Use the custom function to check allowed origins
     credentials: true,
   });
 

@@ -7,9 +7,7 @@ export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
   @Post('verify-tenant')
-  async verifyTenant(@Req() req: Request){
-    console.log('hjsddsjdhsjdhsj');
-    
+  async verifyTenant(@Req() req: Request){  
     return req.headers['x-tenant-id'] as string
   }
 
@@ -17,6 +15,9 @@ export class CompanyController {
   async login(@Req() req: Request, @Body() body: { email: string; password: string }) {
     const tenantId = req.headers['x-tenant-id'] as string;
     const domain = req.headers['x-domain'] as string;
+
+    console.log('hey login reached');
+    
 
     if (!tenantId || !domain) {
       throw new UnauthorizedException('Tenant ID and domain are required');
