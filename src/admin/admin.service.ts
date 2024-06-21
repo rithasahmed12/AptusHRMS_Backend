@@ -8,7 +8,7 @@ import { AdminLoginDto } from './dto/adminlogin.dto';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
+import  { Model } from 'mongoose';
 import { Order } from '../stripe/schemas/order.schema';
 import { Plans } from './schema/plans.schema';
 import { CreatePlansDto } from './dto/createPlans.dto';
