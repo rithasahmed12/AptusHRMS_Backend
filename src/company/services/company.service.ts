@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Connection } from 'mongoose';
-import { TenantService } from '../tenant/tenant.service';
-import { UserSchema } from './schemas/user.schema';
+import { TenantService } from '../../tenant/tenant.service';
+import { UserSchema } from '../schemas/user.schema';
 import { Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 
@@ -30,15 +30,17 @@ export class CompanyService {
         secret: process.env.JWT_SECRET,
         expiresIn: '1d',
       });
+      
 
       response.cookie('companyJwt', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV !== 'development',
-        sameSite: 'strict',
+        secure: true,
+        sameSite:'none',
         maxAge: 24 * 60 * 60 * 1000,
       });
+      
 
-      return { message: 'Login successfull', email:body.email };
+      return { message: 'Login successfull', email:body.email, accessToken:token };
     } catch (error) {
         if (error instanceof UnauthorizedException) {
             throw error; 

@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Req, UseGuards, UnauthorizedException, Res } from '@nestjs/common';
 import { Request, Response, response } from 'express';
-import { CompanyService } from './company.service';
+import { CompanyService } from '../services/company.service';
 
 @Controller('company')
 export class CompanyController {
@@ -18,7 +18,7 @@ export class CompanyController {
     
 
     if (!tenantId || !domain) {
-      throw new UnauthorizedException('Tenant ID and domain are required');
+      throw new UnauthorizedException('No Header Token available');
     }
 
     return this.companyService.login(tenantId, domain, body, response);

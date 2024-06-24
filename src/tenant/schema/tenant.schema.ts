@@ -9,7 +9,6 @@ export class Tenant extends Document {
   @Prop({ required: true })
   tenantId: string;
 
-  // Add any additional properties you need for the tenant
 }
 
 export const TenantSchema = SchemaFactory.createForClass(Tenant);
