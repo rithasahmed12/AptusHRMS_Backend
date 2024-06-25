@@ -28,11 +28,13 @@ export class TenantService {
       const userModel = tenantDb.model('User', new mongoose.Schema({
         email: { type: String, required: true },
         password: { type: String, required: true },
+        role:{type:String,required:true},
       }));
       
       await userModel.create({
         email:userData.email,
         password: userData.password,
+        role:'admin'
       });
 
       this.logger.log(`Tenant ${newTenant.tenantId} created successfully with database tenant_${newTenant.tenantId}`);

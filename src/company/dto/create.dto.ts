@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsDate, IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class AnnouncementDto {
   @IsNotEmpty()
@@ -32,4 +32,81 @@ export class CreateDesignationDto {
   @IsNotEmpty()
   @IsString()
   departmentId: string;
+}
+
+export class CreateEmployeeDto {
+  @IsOptional()
+  @IsString()
+  readonly name?: string;
+
+  @IsOptional()
+  @IsString()
+  readonly gender?: string;
+
+  @IsOptional()
+  readonly dob?: Date;
+
+  @IsOptional()
+  @IsString()
+  readonly streetAddress?: string;
+
+  @IsOptional()
+  @IsString()
+  readonly city?: string;
+
+  @IsOptional()
+  @IsString()
+  readonly country?: string;
+
+  @IsOptional()
+  @IsString()
+  readonly postalCode?: string;
+
+  @IsOptional()
+  @IsString()
+  readonly phone?: string;
+
+  @IsEmail()
+  readonly email: string;
+
+  @IsOptional()
+  readonly hireDate?: Date;
+
+  @IsOptional()
+  readonly joiningDate?: Date;
+
+  @IsOptional()
+  @IsNumber()
+  readonly basicSalary?: number;
+
+  @IsOptional()
+  @IsString()
+  readonly employeeType?: string;
+
+  @IsOptional()
+  @IsString()
+  readonly departmentId?: string;
+
+  @IsOptional()
+  @IsString()
+  readonly designationId?: string;
+
+  @IsOptional()
+  @IsString()
+  readonly employeeId?: string;
+
+  @IsOptional()
+  @IsString()
+  readonly status?: string;
+
+  @IsString()
+  readonly role: string;
+
+  @IsOptional()
+  @IsString()
+  readonly shift?: string;
+
+  @IsOptional()
+  @IsString()
+  readonly profilePic?: string;
 }

@@ -12,6 +12,8 @@ import { DepartmentController } from './controller/department.controller';
 import { DepartmentService } from './services/department.service';
 import { DesignationController } from './controller/designation.controller';
 import { DesignationService } from './services/designation.service';
+import { EmployeeController } from './controller/employees.controller';
+import { EmployeeService } from './services/employees.service';
 
 @Module({
   imports: [
@@ -21,8 +23,8 @@ import { DesignationService } from './services/designation.service';
       signOptions: { expiresIn: '3600s' },
     })
   ],
-  controllers: [CompanyController,AnnouncementsController,DepartmentController,DesignationController],
-  providers: [CompanyService, TenantService,AnnouncementsService,DepartmentService,DesignationService],
+  controllers: [CompanyController,AnnouncementsController,DepartmentController,DesignationController,EmployeeController],
+  providers: [CompanyService, TenantService,AnnouncementsService,DepartmentService,DesignationService,EmployeeService],
 })
 export class CompanyModule {
   configure(consumer: MiddlewareConsumer) {
