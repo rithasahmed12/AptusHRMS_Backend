@@ -1,20 +1,10 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Headers,
-  Param,
-  Patch,
-  Post,
-  Put,
-  UnauthorizedException,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Param, Patch, Post, Put, UnauthorizedException, UseGuards, } from '@nestjs/common';
 import { AnnouncementsService } from '../services/announcements.service';
-import { AnnouncementDto } from '../dto/announcement.dto';
 import { CompanyAuthGuard } from '../guards/jwt-auth.guard';
-import { EditAnnouncementDto } from '../dto/editAnnouncement.dto';
+import { TenantInfo } from '../decorators/tenantInfo.decorator';
+import { TenantInfoInterface } from '../interface/tenantInfo.interface';
+import { AnnouncementDto } from '../dto/create.dto';
+import { EditAnnouncementDto } from '../dto/edit.dto';
 
 @Controller('announcements')
 export class AnnouncementsController {
@@ -23,77 +13,52 @@ export class AnnouncementsController {
   @UseGuards(CompanyAuthGuard)
   @Post()
   createAnnouncements(
-    @Headers() headers: any,
+    @TenantInfo() tenantInfo: TenantInfoInterface,
     @Body() announcementDto: AnnouncementDto,
   ) {
-    const tenantId = headers['x-tenant-id'] as string;
-    const domain = headers['x-domain'] as string;
-
-    if (!tenantId || !domain) {
-      throw new UnauthorizedException('No Header Token available');
-    }
-
     return this.announcementsService.createAnnouncements(
-      tenantId,
-      domain,
+      tenantInfo.tenantId,
+      tenantInfo.domain,
       announcementDto,
     );
   }
 
   @UseGuards(CompanyAuthGuard)
   @Get()
-  getAnnouncements(
-    @Headers() headers: any
-  ) {
-    const tenantId = headers['x-tenant-id'] as string;
-    const domain = headers['x-domain'] as string;
-
-    if (!tenantId || !domain) {
-      throw new UnauthorizedException('No Header Token available');
-    }
-
-    return this.announcementsService.getAnnouncements(tenantId,domain);
+  getAnnouncements(@TenantInfo() tenantInfo: TenantInfoInterface) {
+    return this.announcementsService.getAnnouncements(tenantInfo.tenantId, tenantInfo.domain);
   }
 
   @UseGuards(CompanyAuthGuard)
   @Patch('read/:id')
-  markRead(@Param('id') id:string, @Headers() headers: any,){
-    const tenantId = headers['x-tenant-id'] as string;
-    const domain = headers['x-domain'] as string;
-
-    if (!tenantId || !domain) {
-      throw new UnauthorizedException('No Header Token available');
-    }
-
-    return this.announcementsService.markRead(tenantId,domain,id);
-
+  markRead(
+    @Param('id') id: string,
+    @TenantInfo() tenantInfo: TenantInfoInterface,
+  ) {
+    return this.announcementsService.markRead(tenantInfo.tenantId, tenantInfo.domain, id);
   }
 
   @UseGuards(CompanyAuthGuard)
   @Put(':id')
-  editAnnouncement(@Param('id') id:string, @Headers() headers: any,@Body() editAnnouncementDto:EditAnnouncementDto){
-    const tenantId = headers['x-tenant-id'] as string;
-    const domain = headers['x-domain'] as string;
-
-    if (!tenantId || !domain) {
-      throw new UnauthorizedException('No Header Token available');
-    }
-
-    return this.announcementsService.editAnnouncement(tenantId,domain,id,editAnnouncementDto);
-
+  editAnnouncement(
+    @Param('id') id: string,
+    @TenantInfo() tenantInfo: TenantInfoInterface,
+    @Body() editAnnouncementDto: EditAnnouncementDto,
+  ) {
+    return this.announcementsService.editAnnouncement(
+      tenantInfo.tenantId,
+      tenantInfo.domain,
+      id,
+      editAnnouncementDto,
+    );
   }
 
   @UseGuards(CompanyAuthGuard)
   @Delete(':id')
-  deleteAnnouncement(@Param('id') id:string, @Headers() headers: any){
-    const tenantId = headers['x-tenant-id'] as string;
-    const domain = headers['x-domain'] as string;
-
-    if (!tenantId || !domain) {
-      throw new UnauthorizedException('No Header Token available');
-    }
-
-    return this.announcementsService.deleteAnnouncement(tenantId,domain,id);
-
+  deleteAnnouncement(
+    @Param('id') id: string,
+    @TenantInfo() tenantInfo: TenantInfoInterface,
+  ) {
+    return this.announcementsService.deleteAnnouncement(tenantInfo.tenantId, tenantInfo.domain, id);
   }
 }

@@ -23,7 +23,7 @@ export class AdminService {
     @InjectModel(Plans.name) private plansModel: Model<Plans>,
     private readonly mailerService: MailerService,
     private readonly tenantsService: TenantService,
-  ) { }
+  ) {}
 
   async validateAdmin(adminLoginDto: AdminLoginDto) {
     const { email, password } = adminLoginDto;

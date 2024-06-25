@@ -8,6 +8,10 @@ import { TenantMiddleware } from 'src/middlewares/tenants.middleware';
 import { JwtModule } from '@nestjs/jwt';
 import { AnnouncementsController } from './controller/announcements.controller';
 import { AnnouncementsService } from './services/announcements.service';
+import { DepartmentController } from './controller/department.controller';
+import { DepartmentService } from './services/department.service';
+import { DesignationController } from './controller/designation.controller';
+import { DesignationService } from './services/designation.service';
 
 @Module({
   imports: [
@@ -17,8 +21,8 @@ import { AnnouncementsService } from './services/announcements.service';
       signOptions: { expiresIn: '3600s' },
     })
   ],
-  controllers: [CompanyController,AnnouncementsController],
-  providers: [CompanyService, TenantService,AnnouncementsService],
+  controllers: [CompanyController,AnnouncementsController,DepartmentController,DesignationController],
+  providers: [CompanyService, TenantService,AnnouncementsService,DepartmentService,DesignationService],
 })
 export class CompanyModule {
   configure(consumer: MiddlewareConsumer) {
