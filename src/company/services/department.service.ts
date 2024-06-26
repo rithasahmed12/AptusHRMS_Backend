@@ -26,7 +26,7 @@ export class DepartmentService {
         const deparmtentModel = await this.getDeparmentModel(tenantId, domain);
         return await deparmtentModel.find().sort({ createdAt: -1 });
       }
-
+   
       async editDepartment(
         tenantId: string,
         domain: string,

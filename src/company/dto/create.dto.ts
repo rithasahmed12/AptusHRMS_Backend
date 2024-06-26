@@ -1,4 +1,4 @@
-import { IsDate, IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsDate, IsEmail, IsEnum, IsMongoId, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class AnnouncementDto {
   @IsNotEmpty()
@@ -110,3 +110,33 @@ export class CreateEmployeeDto {
   @IsString()
   readonly profilePic?: string;
 }
+
+
+export class CreateProjectDto {
+  @IsString()
+  name: string;
+
+  @IsString()
+  description: string;
+
+  @IsEnum(['Not Started', 'In Progress', 'Completed'])
+  status: string;
+
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  progress: number;
+
+  @IsEnum(['Low', 'Medium', 'High'])
+  priority: string;
+
+  @IsDate()
+  startDate: Date;
+
+  @IsDate()
+  endDate: Date;
+
+  @IsMongoId()
+  assignedPerson: string;
+}
+

@@ -17,6 +17,9 @@ import { EmployeeService } from './services/employees.service';
 import User, { UserSchema } from './schemas/user.schema';
 import Department, { DepartmentSchema } from './schemas/department.schema';
 import Designation, { DesignationSchema } from './schemas/designation.schema';
+import { Project, ProjectSchema } from './schemas/project.schema';
+import { ProjectController } from './controller/projects.controller';
+import { ProjectService } from './services/projects.service';
 
 @Module({
   imports: [
@@ -25,14 +28,15 @@ import Designation, { DesignationSchema } from './schemas/designation.schema';
       { name: User.name, schema: UserSchema },
       { name: Department.name, schema: DepartmentSchema },
       { name: Designation.name, schema: DesignationSchema },
+      { name: Project.name, schema: ProjectSchema }
     ]),
     JwtModule.register({
       secret: `${process.env.JWT_SECRET}`,
       signOptions: { expiresIn: '3600s' },
     })
   ],
-  controllers: [CompanyController,AnnouncementsController,DepartmentController,DesignationController,EmployeeController],
-  providers: [CompanyService, TenantService,AnnouncementsService,DepartmentService,DesignationService,EmployeeService],
+  controllers: [CompanyController,AnnouncementsController,DepartmentController,DesignationController,EmployeeController,ProjectController],
+  providers: [CompanyService, TenantService,AnnouncementsService,DepartmentService,DesignationService,EmployeeService,ProjectService],
 })
 export class CompanyModule {
   configure(consumer: MiddlewareConsumer) {

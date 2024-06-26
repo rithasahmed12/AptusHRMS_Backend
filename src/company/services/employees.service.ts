@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Connection } from 'mongoose';
 import { TenantService } from 'src/tenant/tenant.service';
-import User from '../schemas/user.schema';
+import User, { UserSchema } from '../schemas/user.schema';
 import Department from '../schemas/department.schema';
 import Designation from '../schemas/designation.schema';
 import * as bcrypt from 'bcrypt';
@@ -17,37 +17,29 @@ export class EmployeeService {
     private readonly mailerService: MailerService,
   ) {}
 
-  async createEmployee(
-    tenantId: string,
-    domain: string,
-    createUserDto: CreateEmployeeDto,
-  ) {
-    const tenantDb: Connection = await this.tenantService.getTenantDatabase(
-      tenantId,
-      domain,
-    );
-    const userModel = tenantDb.model('User', User.schema);
+  private async getUserModel(tenantId: string, domain: string) {
+    const tenantDb: Connection = await this.tenantService.getTenantDatabase(tenantId, domain);
+    return tenantDb.models.User || tenantDb.model('User', UserSchema);
+  }
 
+  async createEmployee(tenantId: string,domain: string,createUserDto: CreateEmployeeDto) {
+    
+    const userModel = await this.getUserModel(tenantId,domain);
     console.log('EmployeeData:', createUserDto);
 
-    // Generate random password
     const password = crypto.randomBytes(8).toString('hex');
     const hashedPassword = await bcrypt.hash(password, 10);
     const userWithPassword = { ...createUserDto, password: hashedPassword };
 
     const user = await userModel.create(userWithPassword);
 
-    // Send email to the newly created employee
     await this.sendWelcomeEmail(user, tenantId, domain, password);
 
     return { message: 'Employee created successfully!', user, password };
   }
 
   async getEmployees(tenantId: string, domain: string) {
-    const tenantDb: Connection = await this.tenantService.getTenantDatabase(
-      tenantId,
-      domain,
-    );
+    const tenantDb: Connection = await this.tenantService.getTenantDatabase(tenantId,domain);
     const userModel = tenantDb.model('User', User.schema);
     const departmentModel = tenantDb.model('Department', Department.schema);
     const designationModel = tenantDb.model('Designation', Designation.schema);
@@ -62,10 +54,7 @@ export class EmployeeService {
   }
 
   async getEmployee(tenantId: string, domain: string,id:string) {
-    const tenantDb: Connection = await this.tenantService.getTenantDatabase(
-      tenantId,
-      domain,
-    );
+    const tenantDb: Connection = await this.tenantService.getTenantDatabase(tenantId,domain);
     const userModel = tenantDb.model('User', User.schema);
     const departmentModel = tenantDb.model('Department', Department.schema);
     const designationModel = tenantDb.model('Designation', Designation.schema);
@@ -79,31 +68,13 @@ export class EmployeeService {
       .sort({ createdAt: -1 });
   }
 
-  async editEmployee(
-    tenantId: string,
-    domain: string,
-    id: string,
-    editUserDto: EditEmployeeDto,
-  ) {
-    console.log('reached here');
-    
-    const tenantDb: Connection = await this.tenantService.getTenantDatabase(
-      tenantId,
-      domain,
-    );
-    console.log('reached here also');
-    const userModel = tenantDb.model('User', User.schema);
-    console.log('succcess i guess');
+  async editEmployee(tenantId: string,domain: string,id: string,editUserDto: EditEmployeeDto) {
+    const userModel = await this.getUserModel(tenantId,domain);
     return await userModel.findByIdAndUpdate(id, editUserDto, { new: true });
   }
   
   async deleteEmployee(tenantId: string, domain: string, id: string) {
-    const tenantDb: Connection = await this.tenantService.getTenantDatabase(
-      tenantId,
-      domain,
-    );
-    const userModel = tenantDb.model('User', User.schema);
-
+    const userModel = await this.getUserModel(tenantId,domain);
     await userModel.findByIdAndDelete(id);
   }
 
