@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { Connection } from 'mongoose';
 import { TenantService } from 'src/tenant/tenant.service';
 import User from '../schemas/user.schema';
+import Department from '../schemas/department.schema';
+import Designation from '../schemas/designation.schema';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { CreateEmployeeDto } from '../dto/create.dto';
@@ -25,7 +27,9 @@ export class EmployeeService {
       domain,
     );
     const userModel = tenantDb.model('User', User.schema);
-    
+
+    console.log('EmployeeData:', createUserDto);
+
     // Generate random password
     const password = crypto.randomBytes(8).toString('hex');
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -40,18 +44,38 @@ export class EmployeeService {
   }
 
   async getEmployees(tenantId: string, domain: string) {
-    console.log('iVDE');
-    
     const tenantDb: Connection = await this.tenantService.getTenantDatabase(
       tenantId,
       domain,
     );
-    console.log(';ivde ethi');
-    
     const userModel = tenantDb.model('User', User.schema);
+    const departmentModel = tenantDb.model('Department', Department.schema);
+    const designationModel = tenantDb.model('Designation', Designation.schema);
+
     return await userModel
       .find({ role: { $ne: 'admin' } })
-      .populate('designationId departmentId')
+      .populate([
+        { path: 'designationId', model: designationModel },
+        { path: 'departmentId', model: departmentModel },
+      ])
+      .sort({ createdAt: -1 });
+  }
+
+  async getEmployee(tenantId: string, domain: string,id:string) {
+    const tenantDb: Connection = await this.tenantService.getTenantDatabase(
+      tenantId,
+      domain,
+    );
+    const userModel = tenantDb.model('User', User.schema);
+    const departmentModel = tenantDb.model('Department', Department.schema);
+    const designationModel = tenantDb.model('Designation', Designation.schema);
+
+    return await userModel
+      .findOne({_id:id,role: { $ne: 'admin' } })
+      .populate([
+        { path: 'designationId', model: designationModel },
+        { path: 'departmentId', model: departmentModel },
+      ])
       .sort({ createdAt: -1 });
   }
 
@@ -61,25 +85,34 @@ export class EmployeeService {
     id: string,
     editUserDto: EditEmployeeDto,
   ) {
+    console.log('reached here');
+    
     const tenantDb: Connection = await this.tenantService.getTenantDatabase(
       tenantId,
       domain,
     );
+    console.log('reached here also');
     const userModel = tenantDb.model('User', User.schema);
+    console.log('succcess i guess');
     return await userModel.findByIdAndUpdate(id, editUserDto, { new: true });
   }
-
+  
   async deleteEmployee(tenantId: string, domain: string, id: string) {
     const tenantDb: Connection = await this.tenantService.getTenantDatabase(
       tenantId,
       domain,
     );
     const userModel = tenantDb.model('User', User.schema);
+
     await userModel.findByIdAndDelete(id);
-    return { message: 'Employee deleted successfully!' };
   }
 
-  private async sendWelcomeEmail(user: any, tenantId: string, domain: string, password: string) {
+  private async sendWelcomeEmail(
+    user: any,
+    tenantId: string,
+    domain: string,
+    password: string,
+  ) {
     const frontendUrl = `http://${domain}.localhost:5173`;
     await this.mailerService.sendMail({
       to: user.email,

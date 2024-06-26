@@ -40,6 +40,16 @@ import { EmployeeService } from '../services/employees.service';
         tenantInfo.domain,
       );
     }
+
+    @UseGuards(CompanyAuthGuard)
+    @Get(':id')
+    getEmployee(@TenantInfo() tenantInfo: TenantInfoInterface,@Param('id') id:string) {
+      return this.employeeService.getEmployee(
+        tenantInfo.tenantId,
+        tenantInfo.domain,
+        id
+      );
+    }
   
     @UseGuards(CompanyAuthGuard)
     @Put(':id')

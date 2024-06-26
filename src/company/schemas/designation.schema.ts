@@ -1,4 +1,5 @@
-import { Schema } from 'mongoose';
+// Designation Schema
+import mongoose, { Schema } from 'mongoose';
 
 export const DesignationSchema = new Schema(
   {
@@ -17,6 +18,5 @@ export const DesignationSchema = new Schema(
   },
 );
 
-import mongoose from 'mongoose';
 const Designation = mongoose.model('Designation', DesignationSchema);
 export default Designation;
