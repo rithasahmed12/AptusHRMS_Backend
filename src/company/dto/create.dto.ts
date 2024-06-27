@@ -119,24 +119,14 @@ export class CreateProjectDto {
   @IsString()
   description: string;
 
-  @IsEnum(['Not Started', 'In Progress', 'Completed'])
-  status: string;
-
-  @IsNumber()
-  @Min(0)
-  @Max(100)
-  progress: number;
-
   @IsEnum(['Low', 'Medium', 'High'])
   priority: string;
 
-  @IsDate()
   startDate: Date;
 
-  @IsDate()
   endDate: Date;
 
-  @IsMongoId()
+  @IsString()
   assignedPerson: string;
 }
 

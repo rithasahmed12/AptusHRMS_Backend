@@ -14,6 +14,7 @@ import { Plans } from './schema/plans.schema';
 import { CreatePlansDto } from './dto/createPlans.dto';
 import { MailerService } from '@nestjs-modules/mailer';
 import { TenantService } from 'src/tenant/tenant.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AdminService {
@@ -63,37 +64,46 @@ export class AdminService {
   }
 
   async approveRequest(id: string) {
-    const updatedOrder = await this.orderModel.findByIdAndUpdate(
-      id,
-      { is_approved: true, service_status: 'Approved' },
-      { new: true },
-    );
-
-    const tenantId = this.createTenantId(updatedOrder.company_name)
-
-    if (!updatedOrder) {
+    const order = await this.orderModel.findById(id);
+  
+    if (!order) {
       throw new NotFoundException('Order not found');
     }
-
+  
+    const tenantId = this.createTenantId(order.company_name);
+    const plainTextPassword = order.password;
+    const hashedPassword = await bcrypt.hash(plainTextPassword, 10);
+  
+    const updatedOrder = await this.orderModel.findByIdAndUpdate(
+      id,
+      { 
+        is_approved: true, 
+        service_status: 'Approved',
+        password: hashedPassword  // Store the hashed password
+      },
+      { new: true },
+    );
+  
     // Create tenant after approving the order
-    await this.createTenantForOrder(updatedOrder,tenantId);
-
-    this.sentApprovalMail(updatedOrder,tenantId);
+    await this.createTenantForOrder(updatedOrder, tenantId, hashedPassword);
+  
+    // Send approval email with plain text password
+    await this.sentApprovalMail(updatedOrder, tenantId, plainTextPassword);
   }
 
-  private async createTenantForOrder(order: Order,tenantId:string) {
+  private async createTenantForOrder(order: Order, tenantId: string, hashedPassword: string) {
     const tenantData = {
       companyName: order.company_name,
-      tenantId:tenantId,
+      tenantId: tenantId,
     };
-
+  
     const userData = {
-      email:order.email,
-      password:order.password
+      email: order.email,
+      password: hashedPassword  // Use the hashed password
     }
-
+  
     try {
-      await this.tenantsService.createTenant(tenantData,userData);
+      await this.tenantsService.createTenant(tenantData, userData);
       console.log(`Tenant database created for order ${order._id}`);
     } catch (error) {
       console.error(`Failed to create tenant database for order ${order._id}: ${error.message}`, error.stack);
@@ -101,7 +111,7 @@ export class AdminService {
     }
   }
 
-  async sentApprovalMail(user: Order,tenantId:string) {
+  async sentApprovalMail(user: Order,tenantId:string,plainTextPassword:string) {
     const domain = `http://${user.company_name.replace(/\s/g, '_')}.localhost:5173/`;
 
     await this.mailerService.sendMail({
@@ -124,7 +134,7 @@ export class AdminService {
             <a href="${domain}" style="color: #734c4c; text-decoration: underline;">${domain}</a>
             <p style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: #734c4c;">Portal ID : ${tenantId}</p>
             <p style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: #734c4c;">Email: ${user.email}</p>
-            <p style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: #734c4c;">Password: ${user.password}</p>
+            <p style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: #734c4c;">Password: ${plainTextPassword}</p>
             <p style="font-size: 16px; margin-bottom: 20px;">
               Please use these credentials to access your account.
             </p>

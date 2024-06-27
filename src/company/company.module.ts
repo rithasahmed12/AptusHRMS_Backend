@@ -20,6 +20,7 @@ import Designation, { DesignationSchema } from './schemas/designation.schema';
 import { Project, ProjectSchema } from './schemas/project.schema';
 import { ProjectController } from './controller/projects.controller';
 import { ProjectService } from './services/projects.service';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ProjectService } from './services/projects.service';
       { name: Designation.name, schema: DesignationSchema },
       { name: Project.name, schema: ProjectSchema }
     ]),
+    UserModule,
     JwtModule.register({
       secret: `${process.env.JWT_SECRET}`,
       signOptions: { expiresIn: '3600s' },

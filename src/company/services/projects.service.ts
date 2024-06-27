@@ -24,7 +24,7 @@ export class ProjectService {
 
   async findAllProjects(tenantId: string, domain: string): Promise<Project[]> {
     const projectModel = await this.getProjectModel(tenantId,domain)
-    return projectModel.find().populate('assignedPerson').exec();
+    return projectModel.find().sort({updatedAt:-1}).populate('assignedPerson').exec();
   }
 
   async findOneProject(tenantId: string, domain: string,id: string): Promise<Project> {
@@ -38,8 +38,9 @@ export class ProjectService {
 
   async updateProject(tenantId: string, domain: string,id: string, updateProjectDto: UpdateProjectDto): Promise<Project> {
     const projectModel = await this.getProjectModel(tenantId,domain)
+    console.log('Id:',id);
     const updatedProject = await projectModel
-      .findByIdAndUpdate(id, updateProjectDto, { new: true })
+    .findByIdAndUpdate(id, updateProjectDto, { new: true })
       .populate('assignedPerson')
       .exec();
     if (!updatedProject) {

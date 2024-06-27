@@ -9,7 +9,7 @@ async function bootstrap() {
 
   app.use(cookieParser());
   app.enableCors({
-    origin: checkOrigin, // Use the custom function to check allowed origins
+    origin: checkOrigin,
     credentials: true,
   });
 

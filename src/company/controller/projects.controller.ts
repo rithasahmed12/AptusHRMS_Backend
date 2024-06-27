@@ -1,5 +1,5 @@
 // project.controller.ts
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, UseGuards, Put } from '@nestjs/common';
 import { CreateProjectDto } from '../dto/create.dto';
 import { UpdateProjectDto } from '../dto/edit.dto';
 import { ProjectService } from '../services/projects.service';
@@ -7,7 +7,7 @@ import { CompanyAuthGuard } from '../guards/jwt-auth.guard';
 import { TenantInfo } from '../decorators/tenantInfo.decorator';
 import { TenantInfoInterface } from '../interface/tenantInfo.interface';
 
-@Controller('projects')
+@Controller('project')
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
   
@@ -30,7 +30,7 @@ export class ProjectController {
   }
 
   @UseGuards(CompanyAuthGuard)
-  @Patch(':id')
+  @Put(':id')
   updateProject(@TenantInfo() tenantInfo: TenantInfoInterface,@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
     return this.projectService.updateProject(tenantInfo.tenantId,tenantInfo.domain,id, updateProjectDto);
   }
