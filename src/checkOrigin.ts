@@ -2,8 +2,8 @@ function checkOrigin(origin: string, callback: (err: Error | null, allow?: boole
     
   console.log('hahahahah');
   const allowedOrigins = [
-      'http://localhost:5173', 
-      'http://subdomain.localhost:5173'
+      'http://localhost:3000', 
+      'http://subdomain.localhost:3000'
     ];
     
     

@@ -22,10 +22,12 @@ export class EmployeeService {
     return tenantDb.models.User || tenantDb.model('User', UserSchema);
   }
 
-  async createEmployee(tenantId: string,domain: string,createUserDto: CreateEmployeeDto) {
+  async createEmployee(tenantId: string,domain: string,createUserDto: CreateEmployeeDto,file: Express.Multer.File) {
     
     const userModel = await this.getUserModel(tenantId,domain);
     console.log('EmployeeData:', createUserDto);
+    console.log('File:', createUserDto.profilePic);
+    return;
 
     const password = crypto.randomBytes(8).toString('hex');
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -84,7 +86,7 @@ export class EmployeeService {
     domain: string,
     password: string,
   ) {
-    const frontendUrl = `http://${domain}.localhost:5173`;
+    const frontendUrl = `http://${domain}.localhost:3000`;
     await this.mailerService.sendMail({
       to: user.email,
       subject: 'Welcome to Our Company',

@@ -18,7 +18,5 @@ export class UserController {
     @Get('plan')
     async getPlans(){
         return this.userService.getPlans();
-    }
-
-    
+    }  
 }

@@ -107,8 +107,7 @@ export class CreateEmployeeDto {
   readonly shift?: string;
 
   @IsOptional()
-  @IsString()
-  readonly profilePic?: string;
+  readonly profilePic?: any;
 }
 
 

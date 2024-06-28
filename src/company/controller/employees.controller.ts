@@ -7,10 +7,13 @@ import {
     Put,
     Param,
     Delete,
+    UseInterceptors,
+    UploadedFile,
   } from '@nestjs/common';
   import { CompanyAuthGuard } from '../guards/jwt-auth.guard';
   import { TenantInfo } from '../decorators/tenantInfo.decorator';
   import { TenantInfoInterface } from '../interface/tenantInfo.interface';
+  import { FileInterceptor } from '@nestjs/platform-express';
   import { CreateEmployeeDto } from '../dto/create.dto';
   import { EditEmployeeDto } from '../dto/edit.dto';
 import { EmployeeService } from '../services/employees.service';
@@ -21,14 +24,17 @@ import { EmployeeService } from '../services/employees.service';
   
     @UseGuards(CompanyAuthGuard)
     @Post()
+    @UseInterceptors(FileInterceptor('profilePic'))
     createEmployee(
       @TenantInfo() tenantInfo: TenantInfoInterface,
       @Body() createUserDto: CreateEmployeeDto,
+      @UploadedFile() file: Express.Multer.File
     ) {
       return this.employeeService.createEmployee(
         tenantInfo.tenantId,
         tenantInfo.domain,
         createUserDto,
+        file
       );
     }
   

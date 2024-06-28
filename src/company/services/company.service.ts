@@ -129,10 +129,10 @@ export class CompanyService {
         `,
       });
   
-     
+      const expiresAt = new Date(Date.now() + (1 * 60 * 1000));
       await OtpModel.updateOne(
         { email },
-        { $set: { otp } },
+        { $set: { otp,expiresAt} },
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
   
