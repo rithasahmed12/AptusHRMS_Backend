@@ -17,6 +17,7 @@ import {
   import { CreateEmployeeDto } from '../dto/create.dto';
   import { EditEmployeeDto } from '../dto/edit.dto';
 import { EmployeeService } from '../services/employees.service';
+import { diskStorage } from 'multer';
   
   @Controller('employee')
   export class EmployeeController {
@@ -24,20 +25,24 @@ import { EmployeeService } from '../services/employees.service';
   
     @UseGuards(CompanyAuthGuard)
     @Post()
-    @UseInterceptors(FileInterceptor('profilePic'))
-    createEmployee(
+    @UseInterceptors(FileInterceptor('file'))
+    async createEmployee(
       @TenantInfo() tenantInfo: TenantInfoInterface,
       @Body() createUserDto: CreateEmployeeDto,
       @UploadedFile() file: Express.Multer.File
     ) {
-      return this.employeeService.createEmployee(
+      console.log('Received DTO:', createUserDto);
+      console.log('Received file:', file);
+    
+      return await this.employeeService.createEmployee(
         tenantInfo.tenantId,
         tenantInfo.domain,
         createUserDto,
         file
       );
     }
-  
+
+
     @UseGuards(CompanyAuthGuard)
     @Get()
     getEmployees(@TenantInfo() tenantInfo: TenantInfoInterface) {

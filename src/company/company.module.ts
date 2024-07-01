@@ -21,9 +21,15 @@ import { Project, ProjectSchema } from './schemas/project.schema';
 import { ProjectController } from './controller/projects.controller';
 import { ProjectService } from './services/projects.service';
 import { UserModule } from 'src/user/user.module';
+import { MulterModule } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    MulterModule.register({
+      storage: memoryStorage(),
+    }),
     MongooseModule.forFeature([
       { name: Tenant.name, schema: TenantSchema },
       { name: User.name, schema: UserSchema },
@@ -32,6 +38,7 @@ import { UserModule } from 'src/user/user.module';
       { name: Project.name, schema: ProjectSchema }
     ]),
     UserModule,
+    ConfigModule,
     JwtModule.register({
       secret: `${process.env.JWT_SECRET}`,
       signOptions: { expiresIn: '3600s' },

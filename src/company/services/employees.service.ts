@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Connection } from 'mongoose';
 import { TenantService } from 'src/tenant/tenant.service';
 import User, { UserSchema } from '../schemas/user.schema';
@@ -9,35 +9,71 @@ import * as crypto from 'crypto';
 import { CreateEmployeeDto } from '../dto/create.dto';
 import { EditEmployeeDto } from '../dto/edit.dto';
 import { MailerService } from '@nestjs-modules/mailer';
+import {v2 as cloudinary} from 'cloudinary';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class EmployeeService {
   constructor(
     private readonly tenantService: TenantService,
     private readonly mailerService: MailerService,
-  ) {}
+    private configService: ConfigService,
+  ) {
+    const cloudinaryConfig = this.configService.get('cloudinary');
+    cloudinary.config(cloudinaryConfig);
+  }
 
   private async getUserModel(tenantId: string, domain: string) {
     const tenantDb: Connection = await this.tenantService.getTenantDatabase(tenantId, domain);
     return tenantDb.models.User || tenantDb.model('User', UserSchema);
   }
 
-  async createEmployee(tenantId: string,domain: string,createUserDto: CreateEmployeeDto,file: Express.Multer.File) {
-    
-    const userModel = await this.getUserModel(tenantId,domain);
+  private async uploadToCloudinary(file: Express.Multer.File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const upload = cloudinary.uploader.upload_stream(
+        { folder: 'employee_profiles' }, // You can specify a folder in your Cloudinary account
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result.secure_url);
+        }
+      );
+  
+      upload.end(file.buffer);
+    });
+  }
+
+ 
+
+  async createEmployee(
+    tenantId: string,
+    domain: string,
+    createUserDto: CreateEmployeeDto,
+    file?: Express.Multer.File
+  ) {
+    const userModel = await this.getUserModel(tenantId, domain);
     console.log('EmployeeData:', createUserDto);
-    console.log('File:', createUserDto.profilePic);
-    return;
+    console.log('File:', file);
 
     const password = crypto.randomBytes(8).toString('hex');
     const hashedPassword = await bcrypt.hash(password, 10);
-    const userWithPassword = { ...createUserDto, password: hashedPassword };
+    
+    let profilePicUrl: string | undefined;
+
+    if (file) {
+      profilePicUrl = await this.uploadToCloudinary(file);
+    }
+
+    const userWithPassword = { 
+      ...createUserDto, 
+      password: hashedPassword,
+      profilePic: profilePicUrl
+    };
 
     const user = await userModel.create(userWithPassword);
 
     await this.sendWelcomeEmail(user, tenantId, domain, password);
 
-    return { message: 'Employee created successfully!', user, password };
+    return { message: 'Employee created successfully!', user };
   }
 
   async getEmployees(tenantId: string, domain: string) {

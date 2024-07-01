@@ -57,7 +57,7 @@ export class StripeService {
         });
 
         if (subscriptions.data.length > 0) {
-          const returnUrl = 'http://localhost:5173/purchase';
+          const returnUrl = 'http://localhost:3000/purchase';
           if (!returnUrl) {
             throw new Error('return_url is required and cannot be empty');
           }
@@ -83,8 +83,8 @@ export class StripeService {
       }
 
       const session = await this.stripe.checkout.sessions.create({
-        success_url: 'http://localhost:5173/purchase/success',
-        cancel_url: 'http://localhost:5173/purchase/plan',
+        success_url: 'http://localhost:3000/purchase/success',
+        cancel_url: 'http://localhost:3000/purchase/plan',
         payment_method_types: ['card'],
         mode: 'subscription',
         billing_address_collection: 'auto',

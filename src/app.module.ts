@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -7,11 +7,13 @@ import { StripeModule } from './stripe/stripe.module';
 import { AdminModule } from './admin/admin.module';
 import { TenantModule } from './tenant/tenant.module';
 import { CompanyModule } from './company/company.module';
+import { JsonBodyMiddleware } from './middlewares/json-body.middleware';
+import cloudinaryConfig from './config/cloudinary.config';
 
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ envFilePath: '.env', isGlobal: true }),
+    ConfigModule.forRoot({ envFilePath: '.env',load:[cloudinaryConfig], isGlobal: true }),
     MailerModule.forRoot({
       transport: {
         host: 'smtp.gmail.com',
@@ -40,4 +42,8 @@ import { CompanyModule } from './company/company.module';
     CompanyModule
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule{
+   public configure(consumer: MiddlewareConsumer) {
+    consumer.apply(JsonBodyMiddleware).forRoutes('*');
+  }
+}

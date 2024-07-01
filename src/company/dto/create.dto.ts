@@ -75,9 +75,6 @@ export class CreateEmployeeDto {
   @IsOptional()
   readonly joiningDate?: Date;
 
-  @IsOptional()
-  @IsNumber()
-  readonly basicSalary?: number;
 
   @IsOptional()
   @IsString()
