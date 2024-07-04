@@ -3,11 +3,9 @@ import {
   Post,
   Body,
   Req,
-  UseGuards,
-  UnauthorizedException,
   Res,
 } from '@nestjs/common';
-import { Request, Response, response } from 'express';
+import { Request, Response } from 'express';
 import { CompanyService } from '../services/company.service';
 import { TenantInfo } from '../decorators/tenantInfo.decorator';
 import { TenantInfoInterface } from '../interface/tenantInfo.interface';
@@ -23,18 +21,11 @@ export class CompanyController {
 
   @Post('login')
   async login(
-    @Req() req: Request,
+    @TenantInfo() tenantInfo:TenantInfoInterface,
     @Body() body: { email: string; password: string },
     @Res({ passthrough: true }) response: Response,
   ) {
-    const tenantId = req.headers['x-tenant-id'] as string;
-    const domain = req.headers['x-domain'] as string;
-
-    if (!tenantId || !domain) {
-      throw new UnauthorizedException('No Header Token available');
-    }
-
-    return this.companyService.login(tenantId, domain, body, response);
+    return this.companyService.login(tenantInfo.tenantId, tenantInfo.domain, body, response);
   }
 
   @Post('sent-otp')

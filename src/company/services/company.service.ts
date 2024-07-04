@@ -73,7 +73,7 @@ export class CompanyService {
           maxAge: 24 * 60 * 60 * 1000,
         });
     
-        return { message: 'Login successful', email: body.email, accessToken: token };
+        return { message: 'Login successful', id:user._id, email: body.email, accessToken: token, profilePic:user.profilePic||null};
       } catch (error) {
         if (error instanceof UnauthorizedException) {
           throw error; 

@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Connection } from 'mongoose';
 import { TenantService } from 'src/tenant/tenant.service';
 import User, { UserSchema } from '../schemas/user.schema';
@@ -27,22 +27,6 @@ export class EmployeeService {
     const tenantDb: Connection = await this.tenantService.getTenantDatabase(tenantId, domain);
     return tenantDb.models.User || tenantDb.model('User', UserSchema);
   }
-
-  private async uploadToCloudinary(file: Express.Multer.File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const upload = cloudinary.uploader.upload_stream(
-        { folder: 'employee_profiles' }, // You can specify a folder in your Cloudinary account
-        (error, result) => {
-          if (error) return reject(error);
-          resolve(result.secure_url);
-        }
-      );
-  
-      upload.end(file.buffer);
-    });
-  }
-
- 
 
   async createEmployee(
     tenantId: string,
@@ -92,13 +76,13 @@ export class EmployeeService {
   }
 
   async getEmployee(tenantId: string, domain: string,id:string) {
-    const tenantDb: Connection = await this.tenantService.getTenantDatabase(tenantId,domain);
+    const tenantDb: Connection = await this.tenantService.getTenantDatabase(tenantId,domain); 
     const userModel = tenantDb.model('User', User.schema);
     const departmentModel = tenantDb.model('Department', Department.schema);
     const designationModel = tenantDb.model('Designation', Designation.schema);
 
     return await userModel
-      .findOne({_id:id,role: { $ne: 'admin' } })
+      .findOne({_id:id})
       .populate([
         { path: 'designationId', model: designationModel },
         { path: 'departmentId', model: departmentModel },
@@ -106,14 +90,96 @@ export class EmployeeService {
       .sort({ createdAt: -1 });
   }
 
-  async editEmployee(tenantId: string,domain: string,id: string,editUserDto: EditEmployeeDto) {
-    const userModel = await this.getUserModel(tenantId,domain);
-    return await userModel.findByIdAndUpdate(id, editUserDto, { new: true });
+  async editEmployee(
+    tenantId: string,
+    domain: string,
+    id: string,
+    editUserDto: EditEmployeeDto,
+    file?: Express.Multer.File
+  ) {
+    const userModel = await this.getUserModel(tenantId, domain);
+    
+
+    const existingUser = await userModel.findById(id);
+    if (!existingUser) {
+      throw new NotFoundException('User not found');
+    }
+  
+    let profilePicUrl = existingUser.profilePic;
+  
+    if (file) {
+      // Delete the existing image from Cloudinary if it exists
+      if (existingUser.profilePic) {
+        await this.deleteFromCloudinary(existingUser.profilePic);
+      }
+  
+      profilePicUrl = await this.uploadToCloudinary(file);
+    }
+
+    const updatedUserData = {
+      ...editUserDto,
+      profilePic: profilePicUrl
+    };
+
+    const updatedUser = await userModel.findByIdAndUpdate(id, updatedUserData, { new: true });
+  
+    return updatedUser;
   }
   
   async deleteEmployee(tenantId: string, domain: string, id: string) {
-    const userModel = await this.getUserModel(tenantId,domain);
+    const userModel = await this.getUserModel(tenantId, domain);
+    
+    const user = await userModel.findById(id);
+    
+    if (!user) {
+      throw new NotFoundException('Employee not found');
+    }
+    if (user.profilePic) {
+      try {
+        await this.deleteFromCloudinary(user.profilePic);
+      } catch (error) {
+        console.error('Error deleting profile picture from Cloudinary:', error);
+      }
+    }
     await userModel.findByIdAndDelete(id);
+  
+    return { message: 'Employee deleted successfully' };
+  }
+
+  private async uploadToCloudinary(file: Express.Multer.File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const upload = cloudinary.uploader.upload_stream(
+        { folder: 'employee_profiles' }, 
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result.secure_url);
+        }
+      );
+  
+      upload.end(file.buffer);
+    });
+  }
+
+  private async deleteFromCloudinary(imageUrl: string) {
+    console.log('imageUrl:', imageUrl);
+    
+    const urlParts = imageUrl.split('/');
+    const filename = urlParts[urlParts.length - 1];
+    
+    const publicId = filename.split('.')[0];
+    
+    console.log('publicId:', publicId);
+    
+    if (publicId) {
+      try {
+        const result = await cloudinary.uploader.destroy(`employee_profiles/${publicId}`);
+        console.log('Cloudinary delete result:', result);
+      } catch (error) {
+        console.error('Error deleting image from Cloudinary:', error);
+      }
+    } else {
+      console.log('No valid public_id found in profileImage URL');
+    }
   }
 
   private async sendWelcomeEmail(

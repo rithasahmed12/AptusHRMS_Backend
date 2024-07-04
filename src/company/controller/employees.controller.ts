@@ -63,17 +63,20 @@ import { diskStorage } from 'multer';
     }
   
     @UseGuards(CompanyAuthGuard)
+    @UseInterceptors(FileInterceptor('file'))
     @Put(':id')
     editEmployee(
       @Param('id') id: string,
       @TenantInfo() tenantInfo: TenantInfoInterface,
       @Body() editUserDto: EditEmployeeDto,
+      @UploadedFile() file: Express.Multer.File
     ) {
       return this.employeeService.editEmployee(
         tenantInfo.tenantId,
         tenantInfo.domain,
         id,
         editUserDto,
+        file
       );
     }
   
