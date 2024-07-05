@@ -24,6 +24,7 @@ import { UserModule } from 'src/user/user.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { ConfigModule } from '@nestjs/config';
+import Company, { CompanySchema } from './schemas/company.schema';
 
 @Module({
   imports: [
@@ -35,7 +36,8 @@ import { ConfigModule } from '@nestjs/config';
       { name: User.name, schema: UserSchema },
       { name: Department.name, schema: DepartmentSchema },
       { name: Designation.name, schema: DesignationSchema },
-      { name: Project.name, schema: ProjectSchema }
+      { name: Project.name, schema: ProjectSchema },
+      { name:Company.name, schema: CompanySchema},
     ]),
     UserModule,
     ConfigModule,

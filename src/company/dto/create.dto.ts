@@ -122,7 +122,46 @@ export class CreateProjectDto {
 
   endDate: Date;
 
+  @IsOptional()
   @IsString()
-  assignedPerson: string;
+  assignedPerson: string|null;
+}
+
+export class UpsertCompanyDto {
+  @IsOptional()
+  @IsString()
+  _id?: string;
+
+  @IsString()
+  name: string;
+
+  @IsOptional()
+  @IsString()
+  industry?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  website?: string;
+
+  @IsOptional()
+  @IsString()
+  linkedinHandle?: string;
+
+  @IsOptional()
+  @IsString()
+  whatsappNumber?: string;
+
 }
 
