@@ -165,3 +165,35 @@ export class UpsertCompanyDto {
 
 }
 
+export class CreateWorkShiftDto {
+  shiftName: string;
+  workingDays: string[];
+  shiftIn: string;
+  shiftOut: string;
+  lateThreshold?: number;
+  halfdayThreshold?: number;
+  shiftOutNextDay?: boolean;
+}
+
+export class CreateHolidayDto {
+  name: string;
+  startDate: string;
+  endDate: string;
+}
+
+export class CreateLeaveDto {
+  name: string;
+  numberOfDays: number;
+  status: 'Active' | 'Inactive';
+}
+
+export class CreateAssetDto {
+  name: string;
+  type: string;
+  status: 'In Use' | 'Available' | 'Maintenance';
+  assignedTo?: string;
+  image?: string;
+}
+
+
+

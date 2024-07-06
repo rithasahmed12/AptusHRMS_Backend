@@ -25,6 +25,18 @@ import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { ConfigModule } from '@nestjs/config';
 import Company, { CompanySchema } from './schemas/company.schema';
+import WorkShift, { WorkShiftSchema } from './schemas/workshift.schema';
+import { WorkShiftController } from './controller/workshift.controller';
+import { WorkShiftService } from './services/workshift.service';
+import Holiday, { HolidaySchema } from './schemas/holiday.schema';
+import { HolidayController } from './controller/holiday.controller';
+import { HolidayService } from './services/holiday.service';
+import { LeaveController } from './controller/leave.controller';
+import { LeaveService } from './services/leave.service';
+import Leave, { LeaveSchema } from './schemas/leave.schema';
+import Asset, { AssetSchema } from './schemas/assets.schema';
+import { AssetController } from './controller/assets.controller';
+import { AssetService } from './services/assets.service';
 
 @Module({
   imports: [
@@ -37,22 +49,47 @@ import Company, { CompanySchema } from './schemas/company.schema';
       { name: Department.name, schema: DepartmentSchema },
       { name: Designation.name, schema: DesignationSchema },
       { name: Project.name, schema: ProjectSchema },
-      { name:Company.name, schema: CompanySchema},
+      { name: Company.name, schema: CompanySchema },
+      { name: WorkShift.name, schema: WorkShiftSchema },
+      { name:Holiday.name, schema: HolidaySchema},
+      { name:Leave.name, schema: LeaveSchema},
+      { name:Asset.name, schema: AssetSchema},
     ]),
     UserModule,
     ConfigModule,
     JwtModule.register({
       secret: `${process.env.JWT_SECRET}`,
       signOptions: { expiresIn: '3600s' },
-    })
+    }),
   ],
-  controllers: [CompanyController,AnnouncementsController,DepartmentController,DesignationController,EmployeeController,ProjectController],
-  providers: [CompanyService, TenantService,AnnouncementsService,DepartmentService,DesignationService,EmployeeService,ProjectService],
+  controllers: [
+    CompanyController,
+    AnnouncementsController,
+    DepartmentController,
+    DesignationController,
+    EmployeeController,
+    ProjectController,
+    WorkShiftController,
+    HolidayController,
+    LeaveController,
+    AssetController,
+  ],
+  providers: [
+    CompanyService,
+    TenantService,
+    AnnouncementsService,
+    DepartmentService,
+    DesignationService,
+    EmployeeService,
+    ProjectService,
+    WorkShiftService,
+    HolidayService,
+    LeaveService,
+    AssetService,
+  ],
 })
 export class CompanyModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(TenantMiddleware)
-      .forRoutes(CompanyController);
+    consumer.apply(TenantMiddleware).forRoutes(CompanyController);
   }
 }
