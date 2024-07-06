@@ -37,6 +37,8 @@ import Leave, { LeaveSchema } from './schemas/leave.schema';
 import Asset, { AssetSchema } from './schemas/assets.schema';
 import { AssetController } from './controller/assets.controller';
 import { AssetService } from './services/assets.service';
+import AssetRequest, {  AssetRequestSchema } from './schemas/assetRequest.schema';
+import LeaveRequest, { LeaveRequestSchema } from './schemas/leaveApplication.schema';
 
 @Module({
   imports: [
@@ -54,6 +56,8 @@ import { AssetService } from './services/assets.service';
       { name:Holiday.name, schema: HolidaySchema},
       { name:Leave.name, schema: LeaveSchema},
       { name:Asset.name, schema: AssetSchema},
+      { name:AssetRequest.name, schema: AssetRequestSchema},
+      { name:LeaveRequest.name, schema: LeaveRequestSchema},
     ]),
     UserModule,
     ConfigModule,

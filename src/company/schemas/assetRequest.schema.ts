@@ -1,23 +1,34 @@
-// asset-request.schema.ts
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
-@Schema()
-export class AssetRequest extends Document {
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  userId: Types.ObjectId;
+export const AssetRequestSchema = new Schema(
+  {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    assetId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Asset',
+      required: true,
+    },
+    requestDate: {
+      type: Date,
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ['Pending', 'Approved', 'Rejected'],
+      default: 'Pending',
+    },
+    reason: {
+      type: String,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-  @Prop({ type: Types.ObjectId, ref: 'Asset', required: true })
-  assetId: Types.ObjectId;
-
-  @Prop({ required: true })
-  requestDate: Date;
-
-  @Prop({ enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' })
-  status: string;
-
-  @Prop()
-  reason: string;
-}
-
-export const AssetRequestSchema = SchemaFactory.createForClass(AssetRequest);
+const AssetRequest = mongoose.model('AssetRequest', AssetRequestSchema);
+export default AssetRequest;

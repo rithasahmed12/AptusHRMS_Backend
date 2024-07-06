@@ -5,66 +5,93 @@ import { TenantService } from 'src/tenant/tenant.service';
 import { CreateAssetDto } from '../dto/create.dto';
 import { UpdateAssetDto } from '../dto/edit.dto';
 import Asset, { AssetSchema } from '../schemas/assets.schema';
-import {v2 as cloudinary} from 'cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
 import { ConfigService } from '@nestjs/config';
 import { UserSchema } from '../schemas/user.schema';
+import AssetRequest, {
+  AssetRequestSchema,
+} from '../schemas/assetRequest.schema';
 
 @Injectable()
 export class AssetService {
   constructor(
     private readonly tenantService: TenantService,
     private configService: ConfigService,
-) {
+  ) {
     const cloudinaryConfig = this.configService.get('cloudinary');
     cloudinary.config(cloudinaryConfig);
-}
+  }
 
   private async getAssetModel(tenantId: string, domain: string) {
-    const tenantDb: Connection = await this.tenantService.getTenantDatabase(tenantId, domain);
+    const tenantDb: Connection = await this.tenantService.getTenantDatabase(
+      tenantId,
+      domain,
+    );
     return tenantDb.models.Asset || tenantDb.model('Asset', AssetSchema);
   }
 
   private async getUserModel(tenantId: string, domain: string) {
-    const tenantDb: Connection = await this.tenantService.getTenantDatabase(tenantId, domain);
+    const tenantDb: Connection = await this.tenantService.getTenantDatabase(
+      tenantId,
+      domain,
+    );
     return tenantDb.models.User || tenantDb.model('User', UserSchema);
   }
 
-  async getAllAssets(tenantId: string, domain: string): Promise<typeof Asset[]> {
-    const assetModel = await this.getAssetModel(tenantId, domain);
-    const userModel = await this.getUserModel(tenantId, domain);
-    return assetModel.find()
-    .populate([
-        { path: 'assignedTo', model: userModel },
-      ])
-      .sort({updatedAt: -1}).exec();
+  private async getAssetRequestModel(tenantId: string, domain: string) {
+    const tenantDb: Connection = await this.tenantService.getTenantDatabase(
+      tenantId,
+      domain,
+    );
+    return (
+      tenantDb.models.AssetRequest ||
+      tenantDb.model('AssetRequest', AssetRequestSchema)
+    );
   }
 
-  async getAsset(tenantId: string, domain: string,id:string): Promise<typeof Asset[]> {
+  async getAllAssets(
+    tenantId: string,
+    domain: string,
+  ): Promise<(typeof Asset)[]> {
+    const assetModel = await this.getAssetModel(tenantId, domain);
+    const userModel = await this.getUserModel(tenantId, domain);
+    return assetModel
+      .find()
+      .populate([{ path: 'assignedTo', model: userModel }])
+      .sort({ updatedAt: -1 })
+      .exec();
+  }
+
+  async getAsset(
+    tenantId: string,
+    domain: string,
+    id: string,
+  ): Promise<(typeof Asset)[]> {
     const assetModel = await this.getAssetModel(tenantId, domain);
     const userModel = await this.getUserModel(tenantId, domain);
 
-    return assetModel.findById(id)
-    .populate([
-        { path: 'assignedTo', model: userModel },
-      ])
-    .sort({updatedAt: -1}).exec();
+    return assetModel
+      .findById(id)
+      .populate([{ path: 'assignedTo', model: userModel }])
+      .sort({ updatedAt: -1 })
+      .exec();
   }
 
   async createAsset(
     tenantId: string,
     domain: string,
     createAssetDto: CreateAssetDto,
-    file: Express.Multer.File
+    file: Express.Multer.File,
   ): Promise<any> {
     const assetModel = await this.getAssetModel(tenantId, domain);
     console.log('File:', file);
-  
+
     let imageUrl: string | undefined;
-  
+
     if (file) {
       try {
         imageUrl = await this.uploadToCloudinary(file);
-        
+
         createAssetDto.image = imageUrl;
       } catch (error) {
         console.error('Error uploading file to Cloudinary:', error);
@@ -72,13 +99,14 @@ export class AssetService {
       }
     }
 
-    let assetId:string = "A"+ Math.floor(Math.random() * 900 + 100).toString()
-  
+    let assetId: string =
+      'A' + Math.floor(Math.random() * 900 + 100).toString();
+
     const newAsset = new assetModel({
       ...createAssetDto,
-      assetId:assetId
+      assetId: assetId,
     });
-  
+
     try {
       const savedAsset = await newAsset.save();
       return savedAsset;
@@ -93,45 +121,45 @@ export class AssetService {
     domain: string,
     id: string,
     updateAssetDto: UpdateAssetDto,
-    file: Express.Multer.File
+    file: Express.Multer.File,
   ): Promise<typeof Asset> {
-    
     const assetModel = await this.getAssetModel(tenantId, domain);
-  
+
     const existingAsset = await assetModel.findById(id).exec();
     if (!existingAsset) {
       throw new Error('Asset not found');
     }
-  
+
     let imageUrl: string | undefined;
-  
+
     if (file) {
       try {
         if (existingAsset.image) {
           await this.deleteFromCloudinary(existingAsset.image);
         }
-  
+
         imageUrl = await this.uploadToCloudinary(file);
-        
+
         updateAssetDto.image = imageUrl;
       } catch (error) {
         console.error('Error handling image:', error);
         throw new Error('Failed to process image');
       }
     }
-  
+
     try {
-        Object.keys(updateAssetDto).forEach(key => updateAssetDto[key] === undefined && delete updateAssetDto[key]);
-      const updatedAsset = await assetModel.findOneAndUpdate(
-        { _id: id },
-        {$set:updateAssetDto},
-        { new: true }
-      ).exec();
-  
+      Object.keys(updateAssetDto).forEach(
+        (key) =>
+          updateAssetDto[key] === undefined && delete updateAssetDto[key],
+      );
+      const updatedAsset = await assetModel
+        .findOneAndUpdate({ _id: id }, { $set: updateAssetDto }, { new: true })
+        .exec();
+
       if (!updatedAsset) {
         throw new Error('Asset not found after update');
       }
-  
+
       return updatedAsset;
     } catch (error) {
       console.error('Error updating asset:', error);
@@ -139,56 +167,122 @@ export class AssetService {
     }
   }
 
-  async deleteAsset(tenantId: string, domain: string, id: string): Promise<typeof Asset> {
+  async deleteAsset(
+    tenantId: string,
+    domain: string,
+    id: string,
+  ): Promise<typeof Asset> {
     const assetModel = await this.getAssetModel(tenantId, domain);
     return assetModel.findOneAndDelete({ _id: id }).exec();
   }
 
-  async assignAsset(tenantId: string, domain: string, id: string, assignedTo: string): Promise<typeof Asset> {
+  async assignAsset(
+    tenantId: string,
+    domain: string,
+    id: string,
+    assignedTo: string,
+  ): Promise<typeof Asset> {
     const assetModel = await this.getAssetModel(tenantId, domain);
-    return assetModel.findOneAndUpdate(
-      { _id: id },
-      { assignedTo, status: 'In Use' },
-      { new: true }
-    ).exec();
+    return assetModel
+      .findOneAndUpdate(
+        { _id: id },
+        { assignedTo, status: 'In Use' },
+        { new: true },
+      )
+      .exec();
   }
 
-  async requestAsset(tenantId: string, domain: string, id: string): Promise<typeof Asset> {
+  async requestAsset(
+    tenantId: string,
+    domain: string,
+    id: string,
+    userId: string,
+  ): Promise<{ asset: typeof Asset; request: typeof AssetRequest }> {
     const assetModel = await this.getAssetModel(tenantId, domain);
-    return assetModel.findOneAndUpdate(
-      { _id: id },
-      { status: 'Maintenance' },
-      { new: true }
-    ).exec();
+    const assetRequestModel = await this.getAssetRequestModel(tenantId, domain);
+
+    // Start a session for a transaction
+    const session = await assetModel.db.startSession();
+    session.startTransaction();
+
+    try {
+      // Update the asset status
+      const asset = await assetModel.findById({ _id: id }).exec();
+
+      if (!asset) {
+        throw new Error('Asset not found');
+      }
+
+      // Create a new asset request
+      const newAssetRequest = new assetRequestModel({
+        userId,
+        assetId: id,
+        requestDate: new Date(),
+        status: 'Pending',
+        reason: 'Asset requested for maintenance',
+      });
+
+      const savedAssetRequest = await newAssetRequest.save({ session });
+
+      // Commit the transaction
+      await session.commitTransaction();
+      session.endSession();
+
+      return { asset: asset, request: savedAssetRequest };
+    } catch (error) {
+      // If an error occurred, abort the transaction
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
+  }
+
+  async getAssetApplication(
+    tenantId: string,
+    domain: string,
+  ): Promise<(typeof AssetRequest)[]> { 
+    const assetRequestModel = await this.getAssetRequestModel(tenantId, domain);
+    const assetModel = await this.getAssetModel(tenantId, domain);
+    const userModel = await this.getUserModel(tenantId, domain);
+
+    return await assetRequestModel
+      .find({})
+      .populate([
+        { path: 'assetId', model: assetModel },
+        { path: 'userId', model: userModel },
+      ])
+      .sort({ updatedAt: -1 });
   }
 
   private async uploadToCloudinary(file: Express.Multer.File): Promise<string> {
     return new Promise((resolve, reject) => {
       const upload = cloudinary.uploader.upload_stream(
-        { folder: 'employee_profiles' }, 
+        { folder: 'employee_profiles' },
         (error, result) => {
           if (error) return reject(error);
           resolve(result.secure_url);
-        }
+        },
       );
-  
+
       upload.end(file.buffer);
     });
   }
 
   private async deleteFromCloudinary(imageUrl: string) {
     console.log('imageUrl:', imageUrl);
-    
+
     const urlParts = imageUrl.split('/');
     const filename = urlParts[urlParts.length - 1];
-    
+
     const publicId = filename.split('.')[0];
-    
+
     console.log('publicId:', publicId);
-    
+
     if (publicId) {
       try {
-        const result = await cloudinary.uploader.destroy(`employee_profiles/${publicId}`);
+        const result = await cloudinary.uploader.destroy(
+          `employee_profiles/${publicId}`,
+        );
         console.log('Cloudinary delete result:', result);
       } catch (error) {
         console.error('Error deleting image from Cloudinary:', error);

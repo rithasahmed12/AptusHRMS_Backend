@@ -20,6 +20,13 @@ export class AssetController {
   }
 
   @UseGuards(CompanyAuthGuard)
+  @Get('request')
+  async getAllAssetRequest(@TenantInfo() tenantInfo:TenantInfoInterface){    
+    return this.assetService.getAssetApplication(tenantInfo.tenantId,tenantInfo.domain);
+  }
+
+
+  @UseGuards(CompanyAuthGuard)
   @Get(':id')
   getAsset(@TenantInfo() tenantInfo: TenantInfoInterface,@Param('id') id:string) {
     return this.assetService.getAsset(tenantInfo.tenantId, tenantInfo.domain,id);
@@ -70,11 +77,12 @@ export class AssetController {
   }
 
   @UseGuards(CompanyAuthGuard)
-  @Put(':id/request')
+  @Put(':id/:userId/request')
   requestAsset(
     @TenantInfo() tenantInfo: TenantInfoInterface,
-    @Param('id') id: string
+    @Param('id') id: string,
+    @Param('userId') userId: string,
   ) {
-    return this.assetService.requestAsset(tenantInfo.tenantId, tenantInfo.domain, id);
+    return this.assetService.requestAsset(tenantInfo.tenantId, tenantInfo.domain, id,userId);
   }
 }

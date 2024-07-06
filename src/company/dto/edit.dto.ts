@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsDate, IsDateString, IsEnum, IsMongoId, IsOptional, IsString } from 'class-validator';
 import {
   AnnouncementDto,
   CreateDepartmentDto,
@@ -6,6 +6,7 @@ import {
   CreateEmployeeDto,
   CreateProjectDto,
 } from './create.dto';
+import { Type } from 'class-transformer';
 
 export class EditAnnouncementDto extends AnnouncementDto {}
 
@@ -50,3 +51,31 @@ export class UpdateAssetDto {
     assignedTo?: string;
     image?: string;
 }
+
+export class UpdatedLeaveRequestDto {
+    @IsMongoId()
+    @IsOptional()
+    leaveTypeId?: string;
+  
+    @IsDateString()
+    @Type(() => Date)
+    @IsOptional()
+    startDate?: Date;
+  
+    @IsDate()
+    @Type(() => Date)
+    @IsOptional()
+    endDate?: Date;
+  
+    @IsString()
+    @IsOptional()
+    reason?: string;
+  
+    @IsEnum(['Pending', 'Approved', 'Rejected'])
+    @IsOptional()
+    status?: 'Pending' | 'Approved' | 'Rejected';
+  
+    @IsBoolean()
+    @IsOptional()
+    requiresApproval?: boolean;
+  }

@@ -1,29 +1,42 @@
-// leave-application.schema.ts
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
-@Schema()
-export class LeaveApplication extends Document {
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  userId: Types.ObjectId;
+export const LeaveRequestSchema = new Schema(
+  {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    leaveTypeId: {
+      type: Schema.Types.ObjectId,
+      ref: 'LeaveType',
+    },
+    startDate: {
+      type: Date,
+      required: true,
+    },
+    endDate: {
+      type: Date,
+      required: true,
+    },
+    reason: {
+      type: String,
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ['Pending', 'Approved', 'Rejected'],
+      default: 'Pending',
+    },
+    requiresApproval: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-  @Prop({ type: Types.ObjectId, ref: 'LeaveType', required: true })
-  leaveTypeId: Types.ObjectId;
-
-  @Prop({ required: true })
-  startDate: Date;
-
-  @Prop({ required: true })
-  endDate: Date;
-
-  @Prop({ required: true })
-  reason: string;
-
-  @Prop({ enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' })
-  status: string;
-
-  @Prop({ default: false })
-  requiresApproval: boolean;
-}
-
-export const LeaveApplicationSchema = SchemaFactory.createForClass(LeaveApplication);
+const LeaveRequest = mongoose.model('LeaveRequest', LeaveRequestSchema);
+export default LeaveRequest;

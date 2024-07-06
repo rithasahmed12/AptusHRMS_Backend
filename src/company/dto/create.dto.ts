@@ -1,4 +1,5 @@
-import { IsDate, IsEmail, IsEnum, IsMongoId, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsDate, IsEmail, IsEnum, IsMongoId, IsNotEmpty, IsBoolean, IsOptional, IsString} from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class AnnouncementDto {
   @IsNotEmpty()
@@ -194,6 +195,36 @@ export class CreateAssetDto {
   assignedTo?: string;
   image?: string;
 }
+
+
+
+export class LeaveRequestDto {
+  @IsString()
+  userId: string;
+
+  @IsString()
+  leaveTypeId: string;
+
+
+  startDate: Date|string;
+
+  endDate: Date|string;
+
+  @IsString()
+  reason: string;
+  
+  numberOfDays:number;
+
+  @IsEnum(['Pending', 'Approved', 'Rejected'])
+  @IsOptional()
+  status?: 'Pending' | 'Approved' | 'Rejected';
+
+  @IsBoolean()
+  @IsOptional()
+  requiresApproval?: boolean;
+}
+
+
 
 
 
