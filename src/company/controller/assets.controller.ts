@@ -44,6 +44,16 @@ export class AssetController {
     return this.assetService.createAsset(tenantInfo.tenantId, tenantInfo.domain, createAssetDto,file);
   }
 
+  @UseGuards(CompanyAuthGuard)
+  @Put('request/:id/status')
+  updateAssetRequestStatus(
+    @TenantInfo() tenantInfo: TenantInfoInterface,
+    @Param('id') id: string,
+    @Body('status') status: 'Approved' | 'Rejected'
+  ) {
+    return this.assetService.updateAssetRequestStatus(tenantInfo.tenantId, tenantInfo.domain, id, status);
+  }
+
 
   @UseGuards(CompanyAuthGuard)
   @UseInterceptors(FileInterceptor('image'))
@@ -85,4 +95,6 @@ export class AssetController {
   ) {
     return this.assetService.requestAsset(tenantInfo.tenantId, tenantInfo.domain, id,userId);
   }
+
+
 }

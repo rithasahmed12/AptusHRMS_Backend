@@ -1,4 +1,4 @@
-import { IsDate, IsEmail, IsEnum, IsMongoId, IsNotEmpty, IsBoolean, IsOptional, IsString} from 'class-validator';
+import { IsDate, IsEmail, IsEnum, IsMongoId, IsNotEmpty, IsBoolean, IsOptional, IsString, IsArray, ValidateNested} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class AnnouncementDto {
@@ -224,6 +224,47 @@ export class LeaveRequestDto {
   requiresApproval?: boolean;
 }
 
+class DynamicFieldDto {
+  @IsString()
+  name: string;
+
+  @IsString()
+  type: string;
+
+  @IsBoolean()
+  required: boolean;
+
+  @IsArray()
+  @IsString({ each: true })
+  fileTypes: string[];
+}
+
+export class CreateJobDto {
+  @IsString()
+  title: string;
+
+  @IsString()
+  description: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  requirements: string[];
+
+  @IsEnum(['Open', 'Closed'])
+  status: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => DynamicFieldDto)
+  dynamicFields: DynamicFieldDto[];
+}
+
+// create-application.dto.ts
+export class CreateApplicationDto {
+  [key: string]: any;
+  jobId: string;
+  files?: any;
+}
 
 
 

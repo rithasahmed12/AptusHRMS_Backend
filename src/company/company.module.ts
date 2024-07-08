@@ -39,6 +39,10 @@ import { AssetController } from './controller/assets.controller';
 import { AssetService } from './services/assets.service';
 import AssetRequest, {  AssetRequestSchema } from './schemas/assetRequest.schema';
 import LeaveRequest, { LeaveRequestSchema } from './schemas/leaveApplication.schema';
+import Job, { JobSchema } from './schemas/job.schema';
+import Application, { ApplicationSchema } from './schemas/application.schema';
+import { JobController } from './controller/recruitment.controller';
+import { JobService } from './services/recruitment.service';
 
 @Module({
   imports: [
@@ -58,6 +62,8 @@ import LeaveRequest, { LeaveRequestSchema } from './schemas/leaveApplication.sch
       { name:Asset.name, schema: AssetSchema},
       { name:AssetRequest.name, schema: AssetRequestSchema},
       { name:LeaveRequest.name, schema: LeaveRequestSchema},
+      { name:Job.name, schema: JobSchema},
+      { name:Application.name, schema: ApplicationSchema},
     ]),
     UserModule,
     ConfigModule,
@@ -77,6 +83,7 @@ import LeaveRequest, { LeaveRequestSchema } from './schemas/leaveApplication.sch
     HolidayController,
     LeaveController,
     AssetController,
+    JobController,
   ],
   providers: [
     CompanyService,
@@ -90,6 +97,7 @@ import LeaveRequest, { LeaveRequestSchema } from './schemas/leaveApplication.sch
     HolidayService,
     LeaveService,
     AssetService,
+    JobService,
   ],
 })
 export class CompanyModule {

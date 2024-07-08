@@ -201,19 +201,16 @@ export class AssetService {
     const assetModel = await this.getAssetModel(tenantId, domain);
     const assetRequestModel = await this.getAssetRequestModel(tenantId, domain);
 
-    // Start a session for a transaction
     const session = await assetModel.db.startSession();
     session.startTransaction();
 
     try {
-      // Update the asset status
       const asset = await assetModel.findById({ _id: id }).exec();
 
       if (!asset) {
         throw new Error('Asset not found');
       }
 
-      // Create a new asset request
       const newAssetRequest = new assetRequestModel({
         userId,
         assetId: id,
@@ -224,13 +221,12 @@ export class AssetService {
 
       const savedAssetRequest = await newAssetRequest.save({ session });
 
-      // Commit the transaction
       await session.commitTransaction();
       session.endSession();
 
       return { asset: asset, request: savedAssetRequest };
     } catch (error) {
-      // If an error occurred, abort the transaction
+     
       await session.abortTransaction();
       session.endSession();
       throw error;
@@ -289,6 +285,47 @@ export class AssetService {
       }
     } else {
       console.log('No valid public_id found in profileImage URL');
+    }
+  }
+
+  async updateAssetRequestStatus(
+    tenantId: string,
+    domain: string,
+    requestId: string,
+    status: 'Approved' | 'Rejected'
+  ): Promise<typeof AssetRequest> {
+    const assetRequestModel = await this.getAssetRequestModel(tenantId, domain);
+    const assetModel = await this.getAssetModel(tenantId, domain);
+
+    const session = await assetRequestModel.db.startSession();
+    session.startTransaction();
+
+    try {
+      const assetRequest = await assetRequestModel.findById(requestId).session(session);
+      if (!assetRequest) {
+        throw new Error('Asset request not found');
+      }
+
+      assetRequest.status = status;
+      await assetRequest.save({ session });
+
+      if (status === 'Approved') {
+        const asset = await assetModel.findById(assetRequest.assetId).session(session);
+        if (!asset) {
+          throw new Error('Asset not found');
+        }
+        asset.assignedTo = assetRequest.userId;
+        asset.status = 'In Use';
+        await asset.save({ session });
+      }
+
+      await session.commitTransaction();
+      return assetRequest;
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
     }
   }
 }
