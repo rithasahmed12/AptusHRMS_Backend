@@ -67,7 +67,7 @@ export class CreateEmployeeDto {
   @IsString()
   readonly phone?: string;
 
-  @IsEmail()
+  // @IsEmail()
   readonly email: string;
 
   @IsOptional()
@@ -102,7 +102,7 @@ export class CreateEmployeeDto {
 
   @IsOptional()
   @IsString()
-  readonly shift?: string;
+  readonly workShift?: string;
 
   @IsOptional()
   readonly profilePic?: any;

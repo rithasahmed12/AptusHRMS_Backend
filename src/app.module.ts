@@ -42,8 +42,4 @@ import cloudinaryConfig from './config/cloudinary.config';
     CompanyModule
   ],
 })
-export class AppModule implements NestModule{
-   public configure(consumer: MiddlewareConsumer) {
-    consumer.apply(JsonBodyMiddleware).forRoutes('*');
-  }
-}
+export class AppModule{}

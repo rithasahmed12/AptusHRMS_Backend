@@ -15,7 +15,7 @@ export class TenantService {
   constructor(
     @InjectModel(Tenant.name) private tenantModel: Model<Tenant>,
     @Inject(getConnectionToken()) private connection: Connection
-  ) {}
+  ) {} 
 
   async createTenant(tenantData: Partial<Tenant>,userData:{email:string,password:string}): Promise<Tenant> {
     try {

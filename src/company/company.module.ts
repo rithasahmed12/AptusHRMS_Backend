@@ -43,6 +43,9 @@ import Job, { JobSchema } from './schemas/job.schema';
 import Application, { ApplicationSchema } from './schemas/application.schema';
 import { JobController } from './controller/recruitment.controller';
 import { JobService } from './services/recruitment.service';
+import Attendance, { AttendanceSchema } from './schemas/attendance.schema';
+import { AttendanceController } from './controller/attendance.controller';
+import { AttendanceService } from './services/attendance.service';
 
 @Module({
   imports: [
@@ -64,6 +67,7 @@ import { JobService } from './services/recruitment.service';
       { name:LeaveRequest.name, schema: LeaveRequestSchema},
       { name:Job.name, schema: JobSchema},
       { name:Application.name, schema: ApplicationSchema},
+      { name:Attendance.name, schema: AttendanceSchema},
     ]),
     UserModule,
     ConfigModule,
@@ -84,6 +88,8 @@ import { JobService } from './services/recruitment.service';
     LeaveController,
     AssetController,
     JobController,
+    AttendanceController,
+
   ],
   providers: [
     CompanyService,
@@ -98,6 +104,7 @@ import { JobService } from './services/recruitment.service';
     LeaveService,
     AssetService,
     JobService,
+    AttendanceService,
   ],
 })
 export class CompanyModule {

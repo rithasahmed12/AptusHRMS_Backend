@@ -105,7 +105,7 @@ export class CompanyService {
         email: body.email,
         accessToken: token,
         profilePic: user.profilePic || null,
-        logo:company.logo,
+        logo:company.logo ? company.logo : '',
         companyName:company.name
       };
     } catch (error) {

@@ -11,6 +11,7 @@ import { EditEmployeeDto } from '../dto/edit.dto';
 import { MailerService } from '@nestjs-modules/mailer';
 import {v2 as cloudinary} from 'cloudinary';
 import { ConfigService } from '@nestjs/config';
+import WorkShift, { WorkShiftSchema } from '../schemas/workshift.schema';
 
 @Injectable()
 export class EmployeeService {
@@ -65,12 +66,14 @@ export class EmployeeService {
     const userModel = tenantDb.model('User', User.schema);
     const departmentModel = tenantDb.model('Department', Department.schema);
     const designationModel = tenantDb.model('Designation', Designation.schema);
+    const workshiftModel = tenantDb.model('WorkShift',WorkShift.schema);
 
     return await userModel
       .find({ role: { $ne: 'admin' } })
       .populate([
         { path: 'designationId', model: designationModel },
         { path: 'departmentId', model: departmentModel },
+        { path: 'workShift', model: workshiftModel },
       ])
       .sort({ createdAt: -1 });
   }
@@ -80,12 +83,14 @@ export class EmployeeService {
     const userModel = tenantDb.model('User', User.schema);
     const departmentModel = tenantDb.model('Department', Department.schema);
     const designationModel = tenantDb.model('Designation', Designation.schema);
+    const workshiftModel = tenantDb.model('WorkShift',WorkShift.schema);
 
     return await userModel
       .findOne({_id:id})
       .populate([
         { path: 'designationId', model: designationModel },
         { path: 'departmentId', model: departmentModel },
+        { path: 'workShift', model: workshiftModel },
       ])
       .sort({ createdAt: -1 });
   }
