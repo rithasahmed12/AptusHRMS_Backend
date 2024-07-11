@@ -1,5 +1,13 @@
 // controllers/attendance.controller.ts
-import { Controller, Get, Post, Put, Body, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Body,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
 import { CompanyAuthGuard } from '../guards/jwt-auth.guard';
 import { TenantInfo } from '../decorators/tenantInfo.decorator';
 import { TenantInfoInterface } from '../interface/tenantInfo.interface';
@@ -13,41 +21,73 @@ export class AttendanceController {
   @Post('check-in')
   async checkIn(
     @TenantInfo() tenantInfo: TenantInfoInterface,
-    @Body('employeeId') employeeId: string
+    @Body('employeeId') employeeId: string,
   ) {
-    return this.attendanceService.checkIn(tenantInfo.tenantId, tenantInfo.domain, employeeId);
+    return this.attendanceService.checkIn(
+      tenantInfo.tenantId,
+      tenantInfo.domain,
+      employeeId,
+    );
   }
 
   @UseGuards(CompanyAuthGuard)
   @Post('check-out')
   async checkOut(
     @TenantInfo() tenantInfo: TenantInfoInterface,
-    @Body('employeeId') employeeId: string
+    @Body('employeeId') employeeId: string,
   ) {
-    return this.attendanceService.checkOut(tenantInfo.tenantId, tenantInfo.domain, employeeId);
+    return this.attendanceService.checkOut(
+      tenantInfo.tenantId,
+      tenantInfo.domain,
+      employeeId,
+    );
   }
 
   @UseGuards(CompanyAuthGuard)
   @Get('employee/:id')
   async getEmployeeAttendance(
     @TenantInfo() tenantInfo: TenantInfoInterface,
-    @Param('id') employeeId: string
+    @Param('id') employeeId: string,
   ) {
-    return this.attendanceService.getEmployeeAttendance(tenantInfo.tenantId, tenantInfo.domain, employeeId);
+    return this.attendanceService.getEmployeeAttendance(
+      tenantInfo.tenantId,
+      tenantInfo.domain,
+      employeeId,
+    );
+  }
+
+  @UseGuards(CompanyAuthGuard)
+  @Get('/current-day/:id')
+  async getCurrentDayEmployeeAttendance(
+    @TenantInfo() tenantInfo: TenantInfoInterface,
+    @Param('id') employeeId: string,
+  ) {
+    return this.attendanceService.getCurrentDayEmployeeAttendance(
+      tenantInfo.tenantId,
+      tenantInfo.domain,
+      employeeId,
+    );
   }
 
   @UseGuards(CompanyAuthGuard)
   @Get('today')
   async getTodayAttendance(@TenantInfo() tenantInfo: TenantInfoInterface) {
-    return this.attendanceService.getTodayAttendance(tenantInfo.tenantId, tenantInfo.domain);
+    return this.attendanceService.getTodayAttendance(
+      tenantInfo.tenantId,
+      tenantInfo.domain,
+    );
   }
 
   @UseGuards(CompanyAuthGuard)
   @Get('status/:id')
   async getAttendanceStatus(
     @TenantInfo() tenantInfo: TenantInfoInterface,
-    @Param('id') employeeId: string
+    @Param('id') employeeId: string,
   ) {
-    return this.attendanceService.getAttendanceStatus(tenantInfo.tenantId, tenantInfo.domain, employeeId);
+    return this.attendanceService.getAttendanceStatus(
+      tenantInfo.tenantId,
+      tenantInfo.domain,
+      employeeId,
+    );
   }
 }

@@ -222,4 +222,96 @@ export class AttendanceService {
       canCheckOut,
     };
   }
+
+  async getCurrentDayEmployeeAttendance(
+    tenantId: string,
+    domain: string,
+    employeeId: string,
+  ) {
+    const attendanceModel = await this.getAttendanceModel(tenantId, domain);
+    const workShiftModel = await this.getWorkShiftModel(tenantId, domain);
+    const userModel = await this.getEmployeeModel(tenantId, domain);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+  
+    let attendance = await attendanceModel.findOne({
+      employee: employeeId,
+      date: {
+        $gte: today,
+        $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000),
+      },
+    }).populate({ path: 'workShift', model: workShiftModel });
+  
+    console.log("Attendance:", attendance);
+  
+    let workShift;
+    if (!attendance) {
+      const user = await userModel.findById(employeeId).populate({ path: 'workShift', model: workShiftModel });
+      console.log('user:', user);
+  
+      if (!user || !user.workShift) {
+        return {
+          checkInTime: null,
+          checkOutTime: null,
+          status: null,
+        };
+      }
+      workShift = user.workShift;
+    } else {
+      workShift = attendance.workShift;
+    }
+  
+    const currentTime = new Date();
+    const shiftIn = this.parseTime(workShift.shiftIn);
+    const shiftOut = this.parseTime(workShift.shiftOut);
+  
+    // Handle shift crossing midnight
+    if (workShift.shiftOutNextDay) {
+      shiftOut.setDate(shiftOut.getDate() + 1);
+    }
+  
+    const shiftDuration = shiftOut.getTime() - shiftIn.getTime();
+    const halfShiftDuration = shiftDuration / 2;
+    const timeElapsed = currentTime.getTime() - shiftIn.getTime();
+  
+    console.log('halfShiftDuration:', halfShiftDuration);
+    console.log('shiftDuration:', shiftDuration);
+    console.log('timeElapsed:', timeElapsed);
+  
+    let status = null;
+  
+    if (!attendance && timeElapsed > halfShiftDuration) {
+      // Create a new attendance document marking as absent only if it doesn't exist
+      attendance = new attendanceModel({
+        employee: employeeId,
+        date: today,
+        workShift: workShift._id,
+        status: 'Absent',
+        hoursWorked: 0,
+        lateArrivalMinutes: 0,
+        earlyDepartureMinutes: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      
+      await attendance.save();
+      status = 'Absent';
+    } else if (attendance) {
+      status = attendance.status;
+    }
+  
+    return {
+      checkInTime: attendance ? attendance.checkIn : null,
+      checkOutTime: attendance ? attendance.checkOut : null,
+      status: status,
+    };
+  }
+  
+  // Helper function to parse time string (HH:mm) to Date object
+  private parseTime(timeString: string): Date {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes, 0, 0);
+    return date;
+  }
 }
