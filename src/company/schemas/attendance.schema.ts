@@ -22,6 +22,8 @@ export const AttendanceSchema = new Schema(
       default: 'Absent',
     },
     hoursWorked: { type: Number, default: 0 },
+    lateArrivalMinutes: { type: Number, default: 0 },
+    earlyDepartureMinutes: { type: Number, default: 0 },
   },
   { timestamps: true },
 );
