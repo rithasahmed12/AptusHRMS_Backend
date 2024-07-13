@@ -56,8 +56,8 @@ export const UserSchema = new Schema(
       ref: 'Designation',
     },
     workShift: {
-       type: mongoose.Schema.Types.ObjectId,
-        ref: 'WorkShift' 
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'WorkShift',
     },
     employeeId: {
       type: String,
@@ -69,6 +69,7 @@ export const UserSchema = new Schema(
       type: String,
       required: true,
     },
+    allowances: [{ name: String, amount: Number }],
     profilePic: {
       type: String,
     },

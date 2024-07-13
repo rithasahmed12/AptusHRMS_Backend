@@ -86,7 +86,7 @@ export class AttendanceService {
       throw new BadRequestException('Check-in is not allowed yet');
     }
 
-    // Find attendance for today
+  
     const todayAttendance = await attendanceModel.findOne({
       employee: employeeId,
       date: today.toDate(),
@@ -96,7 +96,6 @@ export class AttendanceService {
       throw new BadRequestException('Already checked in for today');
     }
 
-    // If no attendance for today, create a new one
     const attendance =
       todayAttendance ||
       new attendanceModel({
@@ -108,7 +107,6 @@ export class AttendanceService {
     attendance.checkIn = now.toDate();
     attendance.status = now.isAfter(shiftStart) ? 'Late' : 'Present';
 
-    // Calculate late arrival minutes
     if (now.isAfter(shiftStart)) {
       attendance.lateArrivalMinutes = now.diff(shiftStart, 'minutes');
     }

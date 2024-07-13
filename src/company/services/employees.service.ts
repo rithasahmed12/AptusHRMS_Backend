@@ -38,26 +38,37 @@ export class EmployeeService {
     const userModel = await this.getUserModel(tenantId, domain);
     console.log('EmployeeData:', createUserDto);
     console.log('File:', file);
-
+  
     const password = crypto.randomBytes(8).toString('hex');
     const hashedPassword = await bcrypt.hash(password, 10);
     
     let profilePicUrl: string | undefined;
-
+  
     if (file) {
       profilePicUrl = await this.uploadToCloudinary(file);
     }
-
+  
+    // Parse the allowances if they exist
+    let parsedAllowances = [];
+    if (createUserDto.allowances && typeof createUserDto.allowances === 'string') {
+      try {
+        parsedAllowances = JSON.parse(createUserDto.allowances);
+      } catch (error) {
+        console.error('Error parsing allowances:', error);
+      }
+    }
+  
     const userWithPassword = { 
       ...createUserDto, 
       password: hashedPassword,
-      profilePic: profilePicUrl
+      profilePic: profilePicUrl,
+      allowances: parsedAllowances
     };
-
+  
     const user = await userModel.create(userWithPassword);
-
+  
     await this.sendWelcomeEmail(user, tenantId, domain, password);
-
+  
     return { message: 'Employee created successfully!', user };
   }
 
@@ -103,8 +114,9 @@ export class EmployeeService {
     file?: Express.Multer.File
   ) {
     const userModel = await this.getUserModel(tenantId, domain);
-    
-
+    console.log('EmployeeData:', editUserDto);
+    console.log('File:', file);
+  
     const existingUser = await userModel.findById(id);
     if (!existingUser) {
       throw new NotFoundException('User not found');
@@ -120,15 +132,26 @@ export class EmployeeService {
   
       profilePicUrl = await this.uploadToCloudinary(file);
     }
-
+  
+    // Parse the allowances if they exist
+    let parsedAllowances = existingUser.allowances;
+    if (editUserDto.allowances && typeof editUserDto.allowances === 'string') {
+      try {
+        parsedAllowances = JSON.parse(editUserDto.allowances);
+      } catch (error) {
+        console.error('Error parsing allowances:', error);
+      }
+    }
+  
     const updatedUserData = {
       ...editUserDto,
-      profilePic: profilePicUrl
+      profilePic: profilePicUrl,
+      allowances: parsedAllowances
     };
-
+  
     const updatedUser = await userModel.findByIdAndUpdate(id, updatedUserData, { new: true });
   
-    return updatedUser;
+    return { message: 'Employee updated successfully!', user: updatedUser };
   }
   
   async deleteEmployee(tenantId: string, domain: string, id: string) {
@@ -226,4 +249,45 @@ export class EmployeeService {
       `,
     });
   }
+
+  // New methods for handling allowances
+  async addAllowance(tenantId: string, domain: string, employeeId: string, allowance: { name: string; amount: number }) {
+    const userModel = await this.getUserModel(tenantId, domain);
+    const user = await userModel.findById(employeeId);
+    if (!user) {
+      throw new NotFoundException('Employee not found');
+    }
+    user.allowances.push(allowance);
+    await user.save();
+    return user;
+  }
+
+  async editAllowance(tenantId: string, domain: string, employeeId: string, allowanceIndex: number, updatedAllowance: { name: string; amount: number }) {
+    const userModel = await this.getUserModel(tenantId, domain);
+    const user = await userModel.findById(employeeId);
+    if (!user) {
+      throw new NotFoundException('Employee not found');
+    }
+    if (allowanceIndex < 0 || allowanceIndex >= user.allowances.length) {
+      throw new NotFoundException('Allowance not found');
+    }
+    user.allowances[allowanceIndex] = updatedAllowance;
+    await user.save();
+    return user;
+  }
+
+  async removeAllowance(tenantId: string, domain: string, employeeId: string, allowanceIndex: number) {
+    const userModel = await this.getUserModel(tenantId, domain);
+    const user = await userModel.findById(employeeId);
+    if (!user) {
+      throw new NotFoundException('Employee not found');
+    }
+    if (allowanceIndex < 0 || allowanceIndex >= user.allowances.length) {
+      throw new NotFoundException('Allowance not found');
+    }
+    user.allowances.splice(allowanceIndex, 1);
+    await user.save();
+    return user;
+  }
+
 }

@@ -53,6 +53,53 @@ import { diskStorage } from 'multer';
     }
 
     @UseGuards(CompanyAuthGuard)
+    @Post(':id/allowance')
+    addAllowance(
+      @Param('id') id: string,
+      @TenantInfo() tenantInfo: TenantInfoInterface,
+      @Body() allowance: { name: string; amount: number }
+    ) {
+      return this.employeeService.addAllowance(
+        tenantInfo.tenantId,
+        tenantInfo.domain,
+        id,
+        allowance
+      );
+    }
+  
+    @UseGuards(CompanyAuthGuard)
+    @Put(':id/allowance/:index')
+    editAllowance(
+      @Param('id') id: string,
+      @Param('index') index: number,
+      @TenantInfo() tenantInfo: TenantInfoInterface,
+      @Body() allowance: { name: string; amount: number }
+    ) {
+      return this.employeeService.editAllowance(
+        tenantInfo.tenantId,
+        tenantInfo.domain,
+        id,
+        index,
+        allowance
+      );
+    }
+  
+    @UseGuards(CompanyAuthGuard)
+    @Delete(':id/allowance/:index')
+    removeAllowance(
+      @Param('id') id: string,
+      @Param('index') index: number,
+      @TenantInfo() tenantInfo: TenantInfoInterface
+    ) {
+      return this.employeeService.removeAllowance(
+        tenantInfo.tenantId,
+        tenantInfo.domain,
+        id,
+        index
+      );
+    }
+
+    @UseGuards(CompanyAuthGuard)
     @Get(':id')
     getEmployee(@TenantInfo() tenantInfo: TenantInfoInterface,@Param('id') id:string) {
       return this.employeeService.getEmployee(

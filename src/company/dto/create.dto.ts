@@ -67,6 +67,8 @@ export class CreateEmployeeDto {
   @IsString()
   readonly phone?: string;
 
+  allowances: { name: string; amount: number }[];
+
   // @IsEmail()
   readonly email: string;
 
