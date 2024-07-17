@@ -93,7 +93,7 @@ export class AdminService {
 
   private async createTenantForOrder(order: Order, tenantId: string, hashedPassword: string) {
     const tenantData = {
-      companyName: order.company_name,
+      domain: order.company_name,
       tenantId: tenantId,
     };
   

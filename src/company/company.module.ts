@@ -46,9 +46,15 @@ import { JobService } from './services/recruitment.service';
 import Attendance, { AttendanceSchema } from './schemas/attendance.schema';
 import { AttendanceController } from './controller/attendance.controller';
 import { AttendanceService } from './services/attendance.service';
+import { PayrollController } from './controller/payroll.controller';
+import { PayrollService } from './services/payroll.service';
+import Payroll, { EmployeeMonthlyPayrollSchema} from './schemas/payroll.schema';
+import EmployeeMonthlyPayroll from './schemas/payroll.schema';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     MulterModule.register({
       storage: memoryStorage(),
     }),
@@ -68,6 +74,7 @@ import { AttendanceService } from './services/attendance.service';
       { name:Job.name, schema: JobSchema},
       { name:Application.name, schema: ApplicationSchema},
       { name:Attendance.name, schema: AttendanceSchema},
+      { name:EmployeeMonthlyPayroll.name, schema: EmployeeMonthlyPayrollSchema},
     ]),
     UserModule,
     ConfigModule,
@@ -89,6 +96,7 @@ import { AttendanceService } from './services/attendance.service';
     AssetController,
     JobController,
     AttendanceController,
+    PayrollController,
 
   ],
   providers: [
@@ -105,10 +113,14 @@ import { AttendanceService } from './services/attendance.service';
     AssetService,
     JobService,
     AttendanceService,
+    PayrollService,
   ],
+  exports:[MongooseModule]
 })
 export class CompanyModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(TenantMiddleware).forRoutes(CompanyController);
   }
 }
+
+export {User,Company}

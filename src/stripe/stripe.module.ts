@@ -6,9 +6,6 @@ import { Order, OrderSchema } from './schemas/order.schema';
 import { RawBodyMiddleware } from '../middlewares/raw-body.middleware';
 import { JsonBodyMiddleware } from '../middlewares/json-body.middleware';
 
-
-
-
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: 'Order', schema: OrderSchema }]),

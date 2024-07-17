@@ -4,7 +4,7 @@ import { Document } from 'mongoose';
 @Schema()
 export class Tenant extends Document {
   @Prop({ required: true })
-  companyName: string;
+  domain: string;
 
   @Prop({ required: true })
   tenantId: string;

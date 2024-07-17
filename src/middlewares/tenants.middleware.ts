@@ -10,14 +10,14 @@ export class TenantMiddleware implements NestMiddleware {
     console.log('req.headers:',req.headers);
     
     const tenantId = req.headers['x-tenant-id'];
-    const companyName = req.headers['x-domain'];
+    const domain = req.headers['x-domain'];
 
-    if (!tenantId || !companyName) {
+    if (!tenantId || !domain) {
       throw new UnauthorizedException('Tenant ID and domain are required');
     }
 
     try {
-      const tenantDb = await this.tenantService.getTenantDatabase(tenantId as string, companyName as string);
+      const tenantDb = await this.tenantService.getTenantDatabase(tenantId as string, domain as string);
       req['tenantDb'] = tenantDb;
       next();
     } catch (err) {
