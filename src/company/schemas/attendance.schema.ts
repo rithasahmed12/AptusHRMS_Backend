@@ -14,7 +14,7 @@ export const AttendanceSchema = new Schema(
     workShift: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'WorkShift',
-      required: true,
+      required: false,
     },
     status: {
       type: String,

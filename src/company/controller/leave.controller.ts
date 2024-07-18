@@ -5,6 +5,8 @@ import { TenantInfoInterface } from '../interface/tenantInfo.interface';
 import { LeaveService } from '../services/leave.service';
 import { CreateLeaveDto, LeaveRequestDto } from '../dto/create.dto';
 import { UpdateLeaveDto } from '../dto/edit.dto';
+import { Roles } from '../decorators/roles.decorators';
+import { RolesGuard } from '../guards/roles.guard';
 
 @Controller('leave')
 export class LeaveController {
@@ -16,7 +18,8 @@ export class LeaveController {
     return this.leaveTypeService.getAllLeaveTypes(tenantInfo.tenantId, tenantInfo.domain);
   }
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin','hr')
   @Post()
   createLeaveType(
     @TenantInfo() tenantInfo: TenantInfoInterface,
@@ -25,7 +28,8 @@ export class LeaveController {
     return this.leaveTypeService.createLeaveType(tenantInfo.tenantId, tenantInfo.domain, createLeaveTypeDto);
   }
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin','hr')
   @Put(':id')
   updateLeaveType(
     @TenantInfo() tenantInfo: TenantInfoInterface,
@@ -35,7 +39,8 @@ export class LeaveController {
     return this.leaveTypeService.updateLeaveType(tenantInfo.tenantId, tenantInfo.domain, id, updateLeaveTypeDto);
   }
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin','hr')
   @Delete(':id')
   deleteLeaveType(
     @TenantInfo() tenantInfo: TenantInfoInterface,
@@ -59,7 +64,8 @@ export class LeaveController {
     return this.leaveTypeService.submitLeaveRequest(tenantInfo.tenantId, tenantInfo.domain, leaveRequestDto);
   }
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin','hr')
   @Put('request/:id/status')
   async updateLeaveRequestStatus(
     @TenantInfo() tenantInfo: TenantInfoInterface,

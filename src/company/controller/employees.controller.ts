@@ -18,12 +18,15 @@ import {
   import { EditEmployeeDto } from '../dto/edit.dto';
 import { EmployeeService } from '../services/employees.service';
 import { diskStorage } from 'multer';
+import { Roles } from '../decorators/roles.decorators';
+import { RolesGuard } from '../guards/roles.guard';
   
   @Controller('employee')
   export class EmployeeController {
     constructor(private readonly employeeService: EmployeeService) {}
   
-    @UseGuards(CompanyAuthGuard)
+    @UseGuards(CompanyAuthGuard,RolesGuard)
+    @Roles('admin','hr')
     @Post()
     @UseInterceptors(FileInterceptor('file'))
     async createEmployee(
@@ -52,52 +55,6 @@ import { diskStorage } from 'multer';
       );
     }
 
-    @UseGuards(CompanyAuthGuard)
-    @Post(':id/allowance')
-    addAllowance(
-      @Param('id') id: string,
-      @TenantInfo() tenantInfo: TenantInfoInterface,
-      @Body() allowance: { name: string; amount: number }
-    ) {
-      return this.employeeService.addAllowance(
-        tenantInfo.tenantId,
-        tenantInfo.domain,
-        id,
-        allowance
-      );
-    }
-  
-    @UseGuards(CompanyAuthGuard)
-    @Put(':id/allowance/:index')
-    editAllowance(
-      @Param('id') id: string,
-      @Param('index') index: number,
-      @TenantInfo() tenantInfo: TenantInfoInterface,
-      @Body() allowance: { name: string; amount: number }
-    ) {
-      return this.employeeService.editAllowance(
-        tenantInfo.tenantId,
-        tenantInfo.domain,
-        id,
-        index,
-        allowance
-      );
-    }
-  
-    @UseGuards(CompanyAuthGuard)
-    @Delete(':id/allowance/:index')
-    removeAllowance(
-      @Param('id') id: string,
-      @Param('index') index: number,
-      @TenantInfo() tenantInfo: TenantInfoInterface
-    ) {
-      return this.employeeService.removeAllowance(
-        tenantInfo.tenantId,
-        tenantInfo.domain,
-        id,
-        index
-      );
-    }
 
     @UseGuards(CompanyAuthGuard)
     @Get(':id')
@@ -109,7 +66,8 @@ import { diskStorage } from 'multer';
       );
     }
   
-    @UseGuards(CompanyAuthGuard)
+    @UseGuards(CompanyAuthGuard,RolesGuard)
+    @Roles('admin','hr')
     @UseInterceptors(FileInterceptor('file'))
     @Put(':id')
     editEmployee(
@@ -127,7 +85,8 @@ import { diskStorage } from 'multer';
       );
     }
   
-    @UseGuards(CompanyAuthGuard)
+    @UseGuards(CompanyAuthGuard,RolesGuard)
+    @Roles('admin','hr')
     @Delete(':id')
     deleteEmployee(
       @Param('id') id: string,

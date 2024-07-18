@@ -16,6 +16,8 @@ import { TenantInfoInterface } from '../interface/tenantInfo.interface';
 import { CompanyAuthGuard } from '../guards/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpsertCompanyDto } from '../dto/create.dto';
+import { Roles } from '../decorators/roles.decorators';
+import { RolesGuard } from '../guards/roles.guard';
 
 @Controller('company')
 export class CompanyController {
@@ -55,7 +57,8 @@ export class CompanyController {
     return this.companyService.changePassword(tenantInfo.tenantId,tenantInfo.domain,body)
   }
 
-  @UseGuards(CompanyAuthGuard)
+@UseGuards(CompanyAuthGuard,RolesGuard)
+@Roles('admin','hr')
 @UseInterceptors(FileInterceptor('logo'))
 @Post('upsert')
 async upsertCompany(

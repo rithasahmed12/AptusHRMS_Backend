@@ -5,12 +5,15 @@ import { TenantInfo } from '../decorators/tenantInfo.decorator';
 import { TenantInfoInterface } from '../interface/tenantInfo.interface';
 import { AnnouncementDto } from '../dto/create.dto';
 import { EditAnnouncementDto } from '../dto/edit.dto';
+import { Roles } from '../decorators/roles.decorators';
+import { RolesGuard } from '../guards/roles.guard';
 
 @Controller('announcements')
 export class AnnouncementsController {
   constructor(private readonly announcementsService: AnnouncementsService) {}
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard, RolesGuard)
+  @Roles('admin', 'hr')
   @Post()
   createAnnouncements(
     @TenantInfo() tenantInfo: TenantInfoInterface,
@@ -38,7 +41,8 @@ export class AnnouncementsController {
     return this.announcementsService.markRead(tenantInfo.tenantId, tenantInfo.domain, id);
   }
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin', 'hr')
   @Put(':id')
   editAnnouncement(
     @Param('id') id: string,
@@ -53,7 +57,8 @@ export class AnnouncementsController {
     );
   }
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin', 'hr')
   @Delete(':id')
   deleteAnnouncement(
     @Param('id') id: string,

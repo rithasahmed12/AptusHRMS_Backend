@@ -86,7 +86,7 @@ export class CompanyService {
       if (!isPasswordValid) {
         throw new UnauthorizedException('Invalid credentials');
       }
-      const payload = { username: email };
+      const payload = { username: email ,role: user.role };
       const token = this.jwtService.sign(payload, {
         secret: process.env.JWT_SECRET,
         expiresIn: '1d',
@@ -104,6 +104,7 @@ export class CompanyService {
         id: user._id,
         email: body.email,
         accessToken: token,
+        role:user.role,
         profilePic: user.profilePic || null,
         logo:company.logo ? company.logo : '',
         companyName:company.name

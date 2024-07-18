@@ -14,12 +14,15 @@ import { TenantInfo } from '../decorators/tenantInfo.decorator';
 import { TenantInfoInterface } from '../interface/tenantInfo.interface';
 import { EditDesignationDto } from '../dto/edit.dto';
 import { CreateDesignationDto } from '../dto/create.dto';
+import { RolesGuard } from '../guards/roles.guard';
+import { Roles } from '../decorators/roles.decorators';
 
 @Controller('designation')
 export class DesignationController {
   constructor(private readonly designationService: DesignationService) {}
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin')
   @Post()
   createDesignation(
     @TenantInfo() tenantInfo: TenantInfoInterface,
@@ -41,7 +44,8 @@ export class DesignationController {
     );
   }
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin')
   @Put(':id')
   editDesignation(
     @Param('id') id: string,
@@ -56,7 +60,8 @@ export class DesignationController {
     );
   }
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin')
   @Delete(':id')
   deleteDesignation(
     @Param('id') id: string,

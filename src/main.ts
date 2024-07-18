@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 import checkOrigin from './checkOrigin';
 
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule,{bodyParser:false});
 

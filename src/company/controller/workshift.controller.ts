@@ -15,12 +15,15 @@ import { TenantInfoInterface } from '../interface/tenantInfo.interface';
 import { WorkShiftService } from '../services/workshift.service';
 import { CreateWorkShiftDto } from '../dto/create.dto';
 import { EditWorkShiftDto } from '../dto/edit.dto';
+import { Roles } from '../decorators/roles.decorators';
+import { RolesGuard } from '../guards/roles.guard';
 
 @Controller('workshift')
 export class WorkShiftController {
   constructor(private readonly workShiftService: WorkShiftService) {}
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin')
   @Post()
   createWorkShift(
     @TenantInfo() tenantInfo: TenantInfoInterface,
@@ -52,7 +55,8 @@ export class WorkShiftController {
     );
   }
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin')
   @Put(':id')
   editWorkShift(
     @Param('id') id: string,
@@ -67,7 +71,8 @@ export class WorkShiftController {
     );
   }
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin')
   @Delete(':id')
   deleteWorkShift(
     @Param('id') id: string,

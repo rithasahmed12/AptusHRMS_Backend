@@ -6,6 +6,8 @@ import { TenantInfoInterface } from '../interface/tenantInfo.interface';
 import { HolidayService } from '../services/holiday.service';
 import { CreateHolidayDto } from '../dto/create.dto';
 import { UpdateHolidayDto } from '../dto/edit.dto';
+import { RolesGuard } from '../guards/roles.guard';
+import { Roles } from '../decorators/roles.decorators';
 
 @Controller('holiday')
 export class HolidayController {
@@ -17,7 +19,8 @@ export class HolidayController {
     return this.holidayService.getAllHolidays(tenantInfo.tenantId, tenantInfo.domain);
   }
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin','hr')
   @Post()
   createHoliday(
     @TenantInfo() tenantInfo: TenantInfoInterface,
@@ -26,7 +29,8 @@ export class HolidayController {
     return this.holidayService.createHoliday(tenantInfo.tenantId, tenantInfo.domain, createHolidayDto);
   }
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin','hr')
   @Put(':id')
   updateHoliday(
     @TenantInfo() tenantInfo: TenantInfoInterface,
@@ -36,7 +40,8 @@ export class HolidayController {
     return this.holidayService.updateHoliday(tenantInfo.tenantId, tenantInfo.domain, id, updateHolidayDto);
   }
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin','hr')
   @Delete(':id')
   deleteHoliday(
     @TenantInfo() tenantInfo: TenantInfoInterface,

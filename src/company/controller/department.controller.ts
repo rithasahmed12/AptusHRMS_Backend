@@ -14,12 +14,15 @@ import { TenantInfo } from '../decorators/tenantInfo.decorator';
 import { TenantInfoInterface } from '../interface/tenantInfo.interface';
 import { EditDepartmentDto } from '../dto/edit.dto';
 import { CreateDepartmentDto } from '../dto/create.dto';
+import { Roles } from '../decorators/roles.decorators';
+import { RolesGuard } from '../guards/roles.guard';
 
 @Controller('department')
 export class DepartmentController {
   constructor(private readonly departmentService: DepartmentService) {}
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin')
   @Post()
   createDepartment(
     @TenantInfo() tenantInfo: TenantInfoInterface,
@@ -43,7 +46,8 @@ export class DepartmentController {
     );
   }
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin')
   @Put(':id')
   editDepartment(
     @Param('id') id: string,
@@ -58,7 +62,8 @@ export class DepartmentController {
     );
   }
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin')
   @Delete(':id')
   deleteDepartment(
     @Param('id') id: string,
