@@ -8,6 +8,8 @@ import { AssetService } from '../services/assets.service';
 import { CreateAssetDto } from '../dto/create.dto';
 import { UpdateAssetDto } from '../dto/edit.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { RolesGuard } from '../guards/roles.guard';
+import { Roles } from '../decorators/roles.decorators';
 
 @Controller('asset')
 export class AssetController {
@@ -32,7 +34,8 @@ export class AssetController {
     return this.assetService.getAsset(tenantInfo.tenantId, tenantInfo.domain,id);
   }
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin','hr')
   @Post()
   @UseInterceptors(FileInterceptor('image'))
   async createAsset(
@@ -44,7 +47,8 @@ export class AssetController {
     return this.assetService.createAsset(tenantInfo.tenantId, tenantInfo.domain, createAssetDto,file);
   }
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin','hr')
   @Put('request/:id/status')
   updateAssetRequestStatus(
     @TenantInfo() tenantInfo: TenantInfoInterface,
@@ -55,7 +59,8 @@ export class AssetController {
   }
 
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin','hr')
   @UseInterceptors(FileInterceptor('image'))
   @Put(':id')
   updateAsset(
@@ -67,7 +72,8 @@ export class AssetController {
     return this.assetService.updateAsset(tenantInfo.tenantId, tenantInfo.domain, id, updateAssetDto,file);
   }
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin','hr')
   @Delete(':id')
   deleteAsset(
     @TenantInfo() tenantInfo: TenantInfoInterface,
@@ -76,7 +82,8 @@ export class AssetController {
     return this.assetService.deleteAsset(tenantInfo.tenantId, tenantInfo.domain, id);
   }
 
-  @UseGuards(CompanyAuthGuard)
+  @UseGuards(CompanyAuthGuard,RolesGuard)
+  @Roles('admin','hr')
   @Put(':id/assign')
   assignAsset(
     @TenantInfo() tenantInfo: TenantInfoInterface,
