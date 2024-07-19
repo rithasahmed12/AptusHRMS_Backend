@@ -7,35 +7,48 @@ import { WorkShiftSchema } from '../schemas/workshift.schema';
 import { HolidaySchema } from '../schemas/holiday.schema';
 import { LeaveRequestSchema } from '../schemas/leaveApplication.schema';
 import { UserSchema } from '../schemas/user.schema';
-import { EmployeeMonthlyPayrollSchema} from '../schemas/payroll.schema';
+import { EmployeeMonthlyPayrollSchema } from '../schemas/payroll.schema';
+import { CreateEmployeeDto } from '../dto/create.dto';
 
 @Injectable()
 export class PayrollService {
-  constructor(
-    private readonly tenantService: TenantService,
-  ) {}
+  constructor(private readonly tenantService: TenantService) {}
 
-  private async getModel(tenantId: string, domain: string, modelName: string, schema: any) {
-    const tenantDb: Connection = await this.tenantService.getTenantDatabase(tenantId, domain);
+  private async getModel(
+    tenantId: string,
+    domain: string,
+    modelName: string,
+    schema: any,
+  ) {
+    const tenantDb: Connection = await this.tenantService.getTenantDatabase(
+      tenantId,
+      domain,
+    );
     return tenantDb.models[modelName] || tenantDb.model(modelName, schema);
   }
 
   async calculateDailyPayroll(tenantId: string, domain: string, date: Date) {
-    console.log("tenantId:",tenantId,"domain:",domain);
-    
+    console.log('tenantId:', tenantId, 'domain:', domain);
+
     const employees = await this.getAllEmployees(tenantId, domain);
     const payrollData = [];
-  
+
     for (const employee of employees) {
-      const dailyPayroll = await this.calculateEmployeeDailyPayroll(tenantId, domain, employee._id, date);
+      if (employee.role === 'admin') continue;
+
+      const dailyPayroll = await this.calculateEmployeeDailyPayroll(
+        tenantId,
+        domain,
+        employee._id,
+        date,
+      );
       payrollData.push(dailyPayroll);
     }
-  
+
     await this.saveMonthlyPayroll(tenantId, domain, date, payrollData);
-  
+
     return payrollData;
   }
-  
 
   private async calculateEmployeeDailyPayroll(tenantId: string, domain: string, employeeId: string, date: Date) {
     const employee = await this.getEmployee(tenantId, domain, employeeId);
@@ -65,6 +78,11 @@ export class PayrollService {
     console.log('isHoliday:', isHoliday);
     console.log('leaveRequests:', leaveRequest);
   
+    // Check if employee has a basic salary
+    if (!employee.basicSalary) {
+      return { employeeId, date, salary: 0, type: 'No Basic Salary' };
+    }
+
     // Calculate daily salary based on workshift or default to 30 days
     let workingDaysPerMonth: number;
     if (workShift && workShift.workingDays) {
@@ -111,127 +129,195 @@ export class PayrollService {
       payForDay -= (lateDeduction + earlyDeduction);
     }
   
-    const dailyAllowances = employee.allowances.reduce((sum, allowance) => sum + (allowance.amount / workingDaysPerMonth), 0);
+    const dailyAllowances = (employee.allowances || []).reduce((sum, allowance) => sum + (allowance.amount / workingDaysPerMonth), 0);
     payForDay += dailyAllowances;
   
     return { employeeId, date, salary: payForDay, type: 'Regular' };
   }
 
-private async saveMonthlyPayroll(tenantId: string, domain: string, date: Date, dailyPayrollData: any[]) {
-  const EmployeeMonthlyPayrollModel = await this.getModel(tenantId, domain, 'EmployeeMonthlyPayroll', EmployeeMonthlyPayrollSchema);
-  
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1; // JavaScript months are 0-indexed
+  private async saveMonthlyPayroll(
+    tenantId: string,
+    domain: string,
+    date: Date,
+    dailyPayrollData: any[],
+  ) {
+    const EmployeeMonthlyPayrollModel = await this.getModel(
+      tenantId,
+      domain,
+      'EmployeeMonthlyPayroll',
+      EmployeeMonthlyPayrollSchema,
+    );
 
-  for (const dailyRecord of dailyPayrollData) {
-    const { employeeId } = dailyRecord;
-    
-    let monthlyPayroll = await EmployeeMonthlyPayrollModel.findOne({ employeeId, year, month }).exec();
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1; // JavaScript months are 0-indexed
 
-    if (!monthlyPayroll) {
-      monthlyPayroll = new EmployeeMonthlyPayrollModel({
+    for (const dailyRecord of dailyPayrollData) {
+      const { employeeId } = dailyRecord;
+
+      let monthlyPayroll = await EmployeeMonthlyPayrollModel.findOne({
         employeeId,
         year,
         month,
-        dailyRecords: []
-      });
+      }).exec();
+
+      if (!monthlyPayroll) {
+        monthlyPayroll = new EmployeeMonthlyPayrollModel({
+          employeeId,
+          year,
+          month,
+          dailyRecords: [],
+        });
+      }
+
+      const existingRecordIndex = monthlyPayroll.dailyRecords.findIndex(
+        (record) => record.date.getTime() === dailyRecord.date.getTime(),
+      );
+
+      if (existingRecordIndex !== -1) {
+        monthlyPayroll.dailyRecords[existingRecordIndex] = dailyRecord;
+      } else {
+        monthlyPayroll.dailyRecords.push(dailyRecord);
+      }
+
+      // Update totals
+      monthlyPayroll.totalSalary = monthlyPayroll.dailyRecords.reduce(
+        (sum, record) => sum + record.salary,
+        0,
+      );
+      monthlyPayroll.totalWorkingDays = monthlyPayroll.dailyRecords.length;
+      monthlyPayroll.totalPresentDays = monthlyPayroll.dailyRecords.filter(
+        (record) => record.type === 'Regular',
+      ).length;
+      monthlyPayroll.totalAbsentDays = monthlyPayroll.dailyRecords.filter(
+        (record) => record.type === 'Absent',
+      ).length;
+      monthlyPayroll.totalLeaveDays = monthlyPayroll.dailyRecords.filter(
+        (record) => record.type === 'Approved Leave',
+      ).length;
+      monthlyPayroll.totalHolidays = monthlyPayroll.dailyRecords.filter(
+        (record) => record.type === 'Holiday',
+      ).length;
+
+      await monthlyPayroll.save();
     }
-
-    const existingRecordIndex = monthlyPayroll.dailyRecords.findIndex(
-      record => record.date.getTime() === dailyRecord.date.getTime()
-    );
-
-    if (existingRecordIndex !== -1) {
-      monthlyPayroll.dailyRecords[existingRecordIndex] = dailyRecord;
-    } else {
-      monthlyPayroll.dailyRecords.push(dailyRecord);
-    }
-
-    // Update totals
-    monthlyPayroll.totalSalary = monthlyPayroll.dailyRecords.reduce((sum, record) => sum + record.salary, 0);
-    monthlyPayroll.totalWorkingDays = monthlyPayroll.dailyRecords.length;
-    monthlyPayroll.totalPresentDays = monthlyPayroll.dailyRecords.filter(record => record.type === 'Regular').length;
-    monthlyPayroll.totalAbsentDays = monthlyPayroll.dailyRecords.filter(record => record.type === 'Absent').length;
-    monthlyPayroll.totalLeaveDays = monthlyPayroll.dailyRecords.filter(record => record.type === 'Approved Leave').length;
-    monthlyPayroll.totalHolidays = monthlyPayroll.dailyRecords.filter(record => record.type === 'Holiday').length;
-
-    await monthlyPayroll.save();
-  }
-}
-
-private calculateWorkingDaysInMonth(workingDays: string[]): number {
-  const daysInMonth = moment().daysInMonth();
-  let workingDaysCount = 0;
-
-  console.log('daysInMonth:',daysInMonth);
-  
-
-  for (let i = 1; i <= daysInMonth; i++) {
-    const dayName = moment().date(i).format('dddd');
-    console.log("dayName:",dayName);
-    
-    if (workingDays.includes(dayName)) {
-      workingDaysCount++;
-    }
-  }
-  console.log('workingDaysCount:',workingDaysCount);
-  
-  return workingDaysCount;
-}
-
-private calculateShiftDuration(shiftIn: string, shiftOut: string, shiftOutNextDay: boolean): number {
-  const startTime = moment(shiftIn, 'HH:mm');
-  let endTime = moment(shiftOut, 'HH:mm');
-
-  if (shiftOutNextDay) {
-    endTime.add(1, 'day');
   }
 
-  return endTime.diff(startTime, 'hours', true);
-}
+  private calculateWorkingDaysInMonth(workingDays: string[]): number {
+    const daysInMonth = moment().daysInMonth();
+    let workingDaysCount = 0;
+
+    console.log('daysInMonth:', daysInMonth);
+
+    for (let i = 1; i <= daysInMonth; i++) {
+      const dayName = moment().date(i).format('dddd');
+      console.log('dayName:', dayName);
+
+      if (workingDays.includes(dayName)) {
+        workingDaysCount++;
+      }
+    }
+    console.log('workingDaysCount:', workingDaysCount);
+
+    return workingDaysCount;
+  }
+
+  private calculateShiftDuration(
+    shiftIn: string,
+    shiftOut: string,
+    shiftOutNextDay: boolean,
+  ): number {
+    const startTime = moment(shiftIn, 'HH:mm');
+    let endTime = moment(shiftOut, 'HH:mm');
+
+    if (shiftOutNextDay) {
+      endTime.add(1, 'day');
+    }
+
+    return endTime.diff(startTime, 'hours', true);
+  }
 
   private async getAllEmployees(tenantId: string, domain: string) {
     const UserModel = await this.getModel(tenantId, domain, 'User', UserSchema);
     return UserModel.find({}).exec();
   }
 
-  private async getEmployee(tenantId: string, domain: string, employeeId: string) {
+  private async getEmployee(
+    tenantId: string,
+    domain: string,
+    employeeId: string,
+  ) {
     const UserModel = await this.getModel(tenantId, domain, 'User', UserSchema);
     return UserModel.findById(employeeId).exec();
   }
 
-  private async getWorkShift(tenantId: string, domain: string, employeeId: string) {
-    const WorkShiftModel = await this.getModel(tenantId, domain, 'WorkShift', WorkShiftSchema);
+  private async getWorkShift(
+    tenantId: string,
+    domain: string,
+    employeeId: string,
+  ) {
+    const WorkShiftModel = await this.getModel(
+      tenantId,
+      domain,
+      'WorkShift',
+      WorkShiftSchema,
+    );
     const UserModel = await this.getModel(tenantId, domain, 'User', UserSchema);
-    const employee = await UserModel.findById(employeeId).populate('workShift').exec();
+    const employee = await UserModel.findById(employeeId)
+      .populate('workShift')
+      .exec();
     return employee.workShift;
   }
 
-  private async getAttendanceByDate(tenantId: string, domain: string, employeeId: string, date: Date) {
-    const AttendanceModel = await this.getModel(tenantId, domain, 'Attendance', AttendanceSchema);
+  private async getAttendanceByDate(
+    tenantId: string,
+    domain: string,
+    employeeId: string,
+    date: Date,
+  ) {
+    const AttendanceModel = await this.getModel(
+      tenantId,
+      domain,
+      'Attendance',
+      AttendanceSchema,
+    );
     const startOfDay = moment(date).startOf('day').toDate();
     const endOfDay = moment(date).endOf('day').toDate();
     return AttendanceModel.findOne({
       employee: employeeId,
-      date: { $gte: startOfDay, $lte: endOfDay }
+      date: { $gte: startOfDay, $lte: endOfDay },
     }).exec();
   }
 
   private async isHoliday(tenantId: string, domain: string, date: Date) {
-    const HolidayModel = await this.getModel(tenantId, domain, 'Holiday', HolidaySchema);
+    const HolidayModel = await this.getModel(
+      tenantId,
+      domain,
+      'Holiday',
+      HolidaySchema,
+    );
     const holiday = await HolidayModel.findOne({
       startDate: { $lte: date },
-      endDate: { $gte: date }
+      endDate: { $gte: date },
     }).exec();
     return !!holiday;
   }
 
-  private async getLeaveRequestByDate(tenantId: string, domain: string, employeeId: string, date: Date) {
-    const LeaveRequestModel = await this.getModel(tenantId, domain, 'LeaveRequest', LeaveRequestSchema);
+  private async getLeaveRequestByDate(
+    tenantId: string,
+    domain: string,
+    employeeId: string,
+    date: Date,
+  ) {
+    const LeaveRequestModel = await this.getModel(
+      tenantId,
+      domain,
+      'LeaveRequest',
+      LeaveRequestSchema,
+    );
     return LeaveRequestModel.findOne({
       userId: employeeId,
       startDate: { $lte: date },
-      endDate: { $gte: date }
+      endDate: { $gte: date },
     }).exec();
   }
 
@@ -248,14 +334,29 @@ private calculateShiftDuration(shiftIn: string, shiftOut: string, shiftOutNextDa
       query.employeeId = employeeId;
     }
 
-    const payrollData = await EmployeeMonthlyPayrollModel.find(query).exec();
+    const payrollData = await EmployeeMonthlyPayrollModel.find(query)
+    .populate({
+      path: 'employeeId',
+      match: { role: { $ne: 'admin' } },
+      populate: [
+        { path: 'departmentId' },
+        { path: 'designationId' }
+      ]
+    })
+    .exec();
 
     if (payrollData.length === 0) {
       throw new NotFoundException('No attendance data found for the specified period.');
     }
 
-    return payrollData.map(data => ({
-      employeeId: data.employeeId,
+    return payrollData.map((data:any) => ({
+      employeeId: data.employeeId ? {
+        _id: data.employeeId._id,
+        name: data.employeeId.name,
+        profilePic: data.employeeId.profilePic,
+        department: data.employeeId.departmentId ? data.employeeId.departmentId.name : 'Not Assigned',
+        designation: data.employeeId.designationId ? data.employeeId.designationId.name : 'Not Assigned'
+      } : null,
       year: data.year,
       month: data.month,
       attendanceTable: data.dailyRecords.map(record => ({

@@ -7,6 +7,7 @@ import * as moment from 'moment';
 import { WorkShiftService } from './workshift.service';
 import { UserSchema } from '../schemas/user.schema';
 import { WorkShiftSchema } from '../schemas/workshift.schema';
+import { HolidaySchema } from '../schemas/holiday.schema';
 
 @Injectable()
 export class AttendanceService {
@@ -14,6 +15,8 @@ export class AttendanceService {
     private readonly tenantService: TenantService,
     private readonly workShiftService: WorkShiftService,
   ) {}
+
+
 
   private async getAttendanceModel(tenantId: string, domain: string) {
     const tenantDb: Connection = await this.tenantService.getTenantDatabase(
@@ -43,6 +46,16 @@ export class AttendanceService {
     );
     return tenantDb.models.User || tenantDb.model('User', UserSchema);
   }
+
+  private async getHolidayModel(tenantId: string, domain: string) {
+    const tenantDb: Connection = await this.tenantService.getTenantDatabase(
+      tenantId,
+      domain,
+    );
+    return tenantDb.models.Holiday || tenantDb.model('Holiday', HolidaySchema);
+  }
+
+  
 
   async checkIn(tenantId: string, domain: string, employeeId: string) {
     const attendanceModel = await this.getAttendanceModel(tenantId, domain);
@@ -229,8 +242,23 @@ export class AttendanceService {
     const attendanceModel = await this.getAttendanceModel(tenantId, domain);
     const workShiftModel = await this.getWorkShiftModel(tenantId, domain);
     const userModel = await this.getEmployeeModel(tenantId, domain);
+    const holidayModel = await this.getHolidayModel(tenantId, domain);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+
+    const holiday = await holidayModel.findOne({
+      startDate: { $lte: today },
+      endDate: { $gte: today }
+    });
+  
+    if (holiday) {
+      return {
+        checkInTime: null,
+        checkOutTime: null,
+        status: 'Holiday',
+        holiday: holiday.name
+      };
+    }
   
     let attendance = await attendanceModel.findOne({
       employee: employeeId,
@@ -241,6 +269,8 @@ export class AttendanceService {
     }).populate({ path: 'workShift', model: workShiftModel });
   
     console.log("Attendance:", attendance);
+
+    
   
     let workShift;
     if (!attendance) {

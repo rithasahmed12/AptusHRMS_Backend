@@ -261,12 +261,6 @@ export class CreateJobDto {
   dynamicFields: DynamicFieldDto[];
 }
 
-// create-application.dto.ts
-export class CreateApplicationDto {
-  [key: string]: any;
-  jobId: string;
-  files?: any;
-}
 
 
 

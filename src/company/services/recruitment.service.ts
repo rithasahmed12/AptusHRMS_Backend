@@ -3,7 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Connection } from 'mongoose';
 import { TenantService } from 'src/tenant/tenant.service';
 import { v4 as uuidv4 } from 'uuid';
-import { CreateApplicationDto, CreateJobDto } from '../dto/create.dto';
+import { CreateJobDto } from '../dto/create.dto';
 import Application, { ApplicationSchema } from '../schemas/application.schema';
 import Job, { JobSchema } from '../schemas/job.schema';
 import { v2 as cloudinary } from 'cloudinary';
@@ -47,8 +47,8 @@ export class JobService {
   async createApplication(
     tenantId: string,
     domain: string,
-    createApplicationDto: CreateApplicationDto,
-    files: { [fieldname: string]: Express.Multer.File[] }
+    createApplicationDto: any,
+    files: Express.Multer.File[]
   ) {
     const applicationModel = await this.getApplicationModel(tenantId, domain);
     
@@ -61,27 +61,23 @@ export class JobService {
       applicantDetails
     };
   
-    if (files) {
+    if (files && files.length > 0) {
       applicationData.uploadedFiles = {};
-      for (const [fieldname, fileArray] of Object.entries(files)) {
-        applicationData.uploadedFiles[fieldname] = await Promise.all(
-          fileArray.map(async (file) => {
-            try {
-              const cloudinaryUrl = await this.uploadToCloudinary(file);
-              return {
-                cloudinaryUrl,
-                name: file.originalname,
-                type: file.mimetype,
-                size: file.size
-              };
-            } catch (error) {
-              console.error(`Error uploading ${fieldname} to Cloudinary:`, error);
-              return null;
-            }
-          })
-        );
-        // Remove null entries (failed uploads)
-        applicationData.uploadedFiles[fieldname] = applicationData.uploadedFiles[fieldname].filter(Boolean);
+      for (const file of files) {
+        try {
+          const cloudinaryUrl = await this.uploadToCloudinary(file);
+          if (!applicationData.uploadedFiles[file.fieldname]) {
+            applicationData.uploadedFiles[file.fieldname] = [];
+          }
+          applicationData.uploadedFiles[file.fieldname].push({
+            cloudinaryUrl,
+            name: file.originalname,
+            type: file.mimetype,
+            size: file.size
+          });
+        } catch (error) {
+          console.error(`Error uploading ${file.fieldname} to Cloudinary:`, error);
+        }
       }
     }
   
@@ -122,5 +118,46 @@ export class JobService {
       throw new NotFoundException('Application not found');
     }
     return application;
+  }
+
+  async updateApplicationStatus(tenantId: string, domain: string, id: string, status: string) {
+    const applicationModel = await this.getApplicationModel(tenantId, domain);
+    const application = await applicationModel.findByIdAndUpdate(id, { status }, { new: true });
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+    return application;
+  }
+
+  async getShortlistedCandidates(tenantId: string, domain: string) {
+    const applicationModel = await this.getApplicationModel(tenantId, domain);
+    return await applicationModel.find({ status: 'Shortlisted' }).sort({ submittedAt: -1 });
+  }
+
+  async deleteApplication(tenantId: string, domain: string, id: string) {
+    const applicationModel = await this.getApplicationModel(tenantId, domain);
+    const application = await applicationModel.findByIdAndDelete(id);
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+    return { message: 'Application deleted successfully' };
+  }
+
+  async updateJob(tenantId: string, domain: string, id: string, updateJobDto: CreateJobDto) {
+    const jobModel = await this.getJobModel(tenantId, domain);
+    const job = await jobModel.findByIdAndUpdate(id, updateJobDto, { new: true });
+    if (!job) {
+      throw new NotFoundException('Job not found');
+    }
+    return job;
+  }
+  
+  async deleteJob(tenantId: string, domain: string, id: string) {
+    const jobModel = await this.getJobModel(tenantId, domain);
+    const job = await jobModel.findByIdAndDelete(id);
+    if (!job) {
+      throw new NotFoundException('Job not found');
+    }
+    return { message: 'Job deleted successfully' };
   }
 }

@@ -51,6 +51,7 @@ import { PayrollService } from './services/payroll.service';
 import Payroll, { EmployeeMonthlyPayrollSchema} from './schemas/payroll.schema';
 import EmployeeMonthlyPayroll from './schemas/payroll.schema';
 import { ScheduleModule } from '@nestjs/schedule';
+import ScheduledCandidates, { ScheduledCandiatesSchema } from './schemas/shceduledCandidates.schema';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { ScheduleModule } from '@nestjs/schedule';
       { name:LeaveRequest.name, schema: LeaveRequestSchema},
       { name:Job.name, schema: JobSchema},
       { name:Application.name, schema: ApplicationSchema},
+      { name:ScheduledCandidates.name, schema: ScheduledCandiatesSchema},
       { name:Attendance.name, schema: AttendanceSchema},
       { name:EmployeeMonthlyPayroll.name, schema: EmployeeMonthlyPayrollSchema},
     ]),

@@ -10,7 +10,7 @@ export const ApplicationSchema = new Schema({
     originalname: String,
     mimetype: String
   }],
-  submittedAt: { type: Date, default: Date.now }
+  submittedAt: { type: Date, default: Date.now },
 }, { timestamps: true, strict: false });
 
 const Application = mongoose.model('Application', ApplicationSchema);
