@@ -19,6 +19,7 @@ import { diskStorage } from 'multer';
 import { CreateJobDto } from '../dto/create.dto';
 import { JobService } from '../services/recruitment.service';
 import path from 'path';
+import { documentFileFilter } from '../utility/fileFilter.utility';
 
 @Controller('job')
 export class JobController {
@@ -64,7 +65,12 @@ export class JobController {
   }
 
   @Post('application')
-  @UseInterceptors(AnyFilesInterceptor())
+  @UseInterceptors(AnyFilesInterceptor({
+    fileFilter: documentFileFilter,
+    limits: {
+      fileSize: 5 * 1024 * 1024 
+    }
+  }))
   async createApplication(
     @TenantInfo() tenantInfo: TenantInfoInterface,
     @Body() createApplicationDto: any,

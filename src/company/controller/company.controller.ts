@@ -18,6 +18,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UpsertCompanyDto } from '../dto/create.dto';
 import { Roles } from '../decorators/roles.decorators';
 import { RolesGuard } from '../guards/roles.guard';
+import { companyImageFileFilter, imageFileFilter } from '../utility/fileFilter.utility';
 
 @Controller('company')
 export class CompanyController {
@@ -59,7 +60,12 @@ export class CompanyController {
 
 @UseGuards(CompanyAuthGuard,RolesGuard)
 @Roles('admin','hr')
-@UseInterceptors(FileInterceptor('logo'))
+@UseInterceptors(FileInterceptor('logo',{
+  fileFilter: companyImageFileFilter,
+  limits: {
+    fileSize: 2 * 1024 * 1024 
+  }
+}))
 @Post('upsert')
 async upsertCompany(
   @TenantInfo() tenantInfo: TenantInfoInterface,

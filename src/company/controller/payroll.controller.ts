@@ -14,7 +14,7 @@ export class PayrollController {
     private readonly tenantService: TenantService
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron(CronExpression.EVERY_DAY_AT_3PM)
   async handleDailyPayroll() {
     const tenants = await this.tenantService.getAllTenants();
     const today = new Date();

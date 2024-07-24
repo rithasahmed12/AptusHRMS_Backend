@@ -9,26 +9,33 @@ import {
     Delete,
     UseInterceptors,
     UploadedFile,
+    Patch,
   } from '@nestjs/common';
   import { CompanyAuthGuard } from '../guards/jwt-auth.guard';
   import { TenantInfo } from '../decorators/tenantInfo.decorator';
   import { TenantInfoInterface } from '../interface/tenantInfo.interface';
   import { FileInterceptor } from '@nestjs/platform-express';
-  import { CreateEmployeeDto } from '../dto/create.dto';
+  import { ChangePasswordDto, CreateEmployeeDto } from '../dto/create.dto';
   import { EditEmployeeDto } from '../dto/edit.dto';
 import { EmployeeService } from '../services/employees.service';
 import { diskStorage } from 'multer';
 import { Roles } from '../decorators/roles.decorators';
 import { RolesGuard } from '../guards/roles.guard';
+import { imageFileFilter } from '../utility/fileFilter.utility';
   
   @Controller('employee')
   export class EmployeeController {
     constructor(private readonly employeeService: EmployeeService) {}
   
-    @UseGuards(CompanyAuthGuard,RolesGuard)
-    @Roles('admin','hr')
+    @UseGuards(CompanyAuthGuard, RolesGuard)
+    @Roles('admin', 'hr')
     @Post()
-    @UseInterceptors(FileInterceptor('file'))
+    @UseInterceptors(FileInterceptor('file', {
+      fileFilter: imageFileFilter,
+      limits: {
+        fileSize: 2 * 1024 * 1024 
+      }
+    }))
     async createEmployee(
       @TenantInfo() tenantInfo: TenantInfoInterface,
       @Body() createUserDto: CreateEmployeeDto,
@@ -65,10 +72,38 @@ import { RolesGuard } from '../guards/roles.guard';
         id
       );
     }
+
+    @UseGuards(CompanyAuthGuard)
+    @UseInterceptors(FileInterceptor('file', {
+      fileFilter: imageFileFilter,
+      limits: {
+        fileSize: 2 * 1024 * 1024 
+      }
+    }))
+    @Put('profile/:id')
+    editEmployeeProfile(
+      @Param('id') id: string,
+      @TenantInfo() tenantInfo: TenantInfoInterface,
+      @Body() editUserDto: EditEmployeeDto,
+      @UploadedFile() file: Express.Multer.File
+    ) {
+      return this.employeeService.editEmployee(
+        tenantInfo.tenantId,
+        tenantInfo.domain,
+        id,
+        editUserDto,
+        file
+      );
+    }
   
     @UseGuards(CompanyAuthGuard,RolesGuard)
     @Roles('admin','hr')
-    @UseInterceptors(FileInterceptor('file'))
+    @UseInterceptors(FileInterceptor('file', {
+      fileFilter: imageFileFilter,
+      limits: {
+        fileSize: 2 * 1024 * 1024 
+      }
+    }))
     @Put(':id')
     editEmployee(
       @Param('id') id: string,
@@ -98,5 +133,22 @@ import { RolesGuard } from '../guards/roles.guard';
         id,
       );
     }
+
+    @UseGuards(CompanyAuthGuard)
+    @Patch('change-password/:id')
+    changeEmployeePassword(
+      @Param('id') id: string,
+      @TenantInfo() tenantInfo: TenantInfoInterface,
+      @Body() changePasswordDto:ChangePasswordDto
+    ){
+      return this.employeeService.changeEmployeePassword(
+        tenantInfo.tenantId,
+        tenantInfo.domain,
+        id,
+        changePasswordDto
+      )
+    }
+
+
   }
   

@@ -7,7 +7,6 @@ import { StripeModule } from './stripe/stripe.module';
 import { AdminModule } from './admin/admin.module';
 import { TenantModule } from './tenant/tenant.module';
 import { CompanyModule } from './company/company.module';
-import { JsonBodyMiddleware } from './middlewares/json-body.middleware';
 import cloudinaryConfig from './config/cloudinary.config';
 
 

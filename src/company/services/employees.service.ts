@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Connection } from 'mongoose';
 import { TenantService } from 'src/tenant/tenant.service';
 import User, { UserSchema } from '../schemas/user.schema';
@@ -6,7 +6,7 @@ import Department from '../schemas/department.schema';
 import Designation from '../schemas/designation.schema';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
-import { CreateEmployeeDto } from '../dto/create.dto';
+import { ChangePasswordDto, CreateEmployeeDto } from '../dto/create.dto';
 import { EditEmployeeDto } from '../dto/edit.dto';
 import { MailerService } from '@nestjs-modules/mailer';
 import {v2 as cloudinary} from 'cloudinary';
@@ -290,4 +290,36 @@ export class EmployeeService {
     return user;
   }
 
+  async changeEmployeePassword(
+    tenantId: string,
+    domain: string,
+    employeeId: string,
+    changePasswordDto: ChangePasswordDto
+  ) {
+    const { currentPassword, newPassword, confirmPassword } = changePasswordDto;
+
+    if (newPassword !== confirmPassword) {
+      throw new BadRequestException('New password and confirm password do not match');
+    }
+
+    const UserModel = await this.getUserModel(tenantId, domain);
+    const employee = await UserModel.findById(employeeId);
+
+    if (!employee) {
+      throw new UnauthorizedException('Employee not found');
+    }
+
+    const isPasswordValid = await bcrypt.compare(currentPassword, employee.password);
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+    employee.password = hashedNewPassword;
+    await employee.save();
+
+    return { message: 'Password changed successfully' };
+  }
 }

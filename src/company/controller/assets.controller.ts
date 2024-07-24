@@ -10,6 +10,7 @@ import { UpdateAssetDto } from '../dto/edit.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorators';
+import { imageFileFilter } from '../utility/fileFilter.utility';
 
 @Controller('asset')
 export class AssetController {
@@ -37,7 +38,12 @@ export class AssetController {
   @UseGuards(CompanyAuthGuard,RolesGuard)
   @Roles('admin','hr')
   @Post()
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FileInterceptor('image', {
+    fileFilter: imageFileFilter,
+    limits: {
+      fileSize: 2 * 1024 * 1024 
+    }
+  }))
   async createAsset(
     @TenantInfo() tenantInfo: TenantInfoInterface,
     @Body() createAssetDto: CreateAssetDto,
@@ -61,7 +67,12 @@ export class AssetController {
 
   @UseGuards(CompanyAuthGuard,RolesGuard)
   @Roles('admin','hr')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FileInterceptor('image', {
+    fileFilter: imageFileFilter,
+    limits: {
+      fileSize: 2 * 1024 * 1024 
+    }
+  }))
   @Put(':id')
   updateAsset(
     @TenantInfo() tenantInfo: TenantInfoInterface,
