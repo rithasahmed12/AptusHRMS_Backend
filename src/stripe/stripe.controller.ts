@@ -34,12 +34,28 @@ export class StripeController {
     @Headers('stripe-signature') signature: string,
 
   ) {
-    try {  
-      await this.stripeService.handleWebhookEvent(req.body, signature, req);
+    try {
+      const rawBody = await this.getRawBody(req);  
+      await this.stripeService.handleWebhookEvent(rawBody, signature, req);
       res.status(200).json({ received: true });
     } catch (err) {
       console.error(`Webhooks Error: ${err.message}`);
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
+  }
+
+  async getRawBody(req: any): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      let data = '';
+      req.on('data', (chunk) => {
+        data += chunk;
+      });
+      req.on('end', () => {
+        resolve(Buffer.from(data));
+      });
+      req.on('error', (err) => {
+        reject(err);
+      });
+    });
   }
 }
