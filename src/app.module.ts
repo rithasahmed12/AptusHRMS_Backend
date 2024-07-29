@@ -12,7 +12,11 @@ import cloudinaryConfig from './config/cloudinary.config';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ envFilePath: '.env',load:[cloudinaryConfig], isGlobal: true }),
+    ConfigModule.forRoot({
+      envFilePath: process.env.NODE_ENV === 'production' ? '.env.production' : '.env',
+      load: [cloudinaryConfig],
+      isGlobal: true
+    }),
     MailerModule.forRoot({
       transport: {
         host: 'smtp.gmail.com',

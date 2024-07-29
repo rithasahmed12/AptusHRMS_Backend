@@ -35,8 +35,7 @@ export class StripeController {
 
   ) {
     try {
-      const rawBody = await this.getRawBody(req);  
-      await this.stripeService.handleWebhookEvent(rawBody, signature, req);
+      await this.stripeService.handleWebhookEvent(req.body, signature, req);
       res.status(200).json({ received: true });
     } catch (err) {
       console.error(`Webhooks Error: ${err.message}`);

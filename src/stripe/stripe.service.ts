@@ -57,7 +57,7 @@ export class StripeService {
         });
 
         if (subscriptions.data.length > 0) {
-          const returnUrl = 'https://shoetopia.site/purchase';
+          const returnUrl = `${process.env.FRONTEND_URL}/purchase`;
           if (!returnUrl) {
             throw new Error('return_url is required and cannot be empty');
           }
@@ -83,8 +83,8 @@ export class StripeService {
       }
 
       const session = await this.stripe.checkout.sessions.create({
-        success_url: 'https://shoetopia.site/purchase/success',
-        cancel_url: 'https://shoetopia.site/purchase/plan',
+        success_url: `${process.env.FRONTEND_URL}purchase/success`,
+        cancel_url: `${process.env.FRONTEND_URL}purchase/plan`,
         payment_method_types: ['card'],
         mode: 'subscription',
         billing_address_collection: 'auto',
