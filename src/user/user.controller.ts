@@ -18,6 +18,7 @@ export class UserController {
     @Get('plan')
     async getPlans(){
         console.log("ENV:",process.env.FRONTEND_URL);
+        console.log("DBURI:",process.env.DBURI);
         
         return this.userService.getPlans();
     }  
