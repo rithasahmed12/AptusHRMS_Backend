@@ -13,7 +13,7 @@ import cloudinaryConfig from './config/cloudinary.config';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: process.env.NODE_ENV === 'production' ? '.env.production' : '.env',
+      envFilePath:'.env',
       load: [cloudinaryConfig],
       isGlobal: true
     }),

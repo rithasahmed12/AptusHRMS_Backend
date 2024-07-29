@@ -43,6 +43,10 @@ export class StripeService {
       const userEmail = body.customer.email;
       const auth0UserId = userEmail;
 
+      const frontendUrl = process.env.NODE_ENV === 'development' 
+      ? process.env.FRONTEND_URL 
+      : 'https://shoetopia.site/';
+
       const existingCustomers = await this.stripe.customers.list({
         email: userEmail,
         limit: 1,
@@ -57,7 +61,7 @@ export class StripeService {
         });
 
         if (subscriptions.data.length > 0) {
-          const returnUrl = `${process.env.FRONTEND_URL}/purchase`;
+          const returnUrl = `${frontendUrl}purchase`;
           if (!returnUrl) {
             throw new Error('return_url is required and cannot be empty');
           }
@@ -82,9 +86,11 @@ export class StripeService {
         });
       }
 
+ 
+
       const session = await this.stripe.checkout.sessions.create({
-        success_url: `${process.env.FRONTEND_URL}purchase/success`,
-        cancel_url: `${process.env.FRONTEND_URL}purchase/plan`,
+        success_url: `${frontendUrl}purchase/success`,
+        cancel_url: `${frontendUrl}purchase/plan`,
         payment_method_types: ['card'],
         mode: 'subscription',
         billing_address_collection: 'auto',

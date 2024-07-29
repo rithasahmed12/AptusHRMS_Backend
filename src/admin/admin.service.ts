@@ -112,7 +112,13 @@ export class AdminService {
   }
 
   async sentApprovalMail(user: Order,tenantId:string,plainTextPassword:string) {
-    const domain = `http://${user.company_name.replace(/\s/g, '_')}.${process.env.FRONTEND_URL}`;
+
+    
+    const domain = user.company_name.replace(/\s/g, '_');
+
+    const baseUrl = process.env.NODE_ENV === 'development'
+    ? `http://${domain}.${process.env.FRONTEND_URL}`
+    : `https://${domain}.shoetopia.site`
 
     await this.mailerService.sendMail({
       to: user.email,
@@ -131,7 +137,7 @@ export class AdminService {
               Here are your account details:
             </p>
             <span style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: #734c4c;">Domain:</span>
-            <a href="${domain}" style="color: #734c4c; text-decoration: underline;">${domain}</a>
+            <a href="${baseUrl}" style="color: #734c4c; text-decoration: underline;">${baseUrl}</a>
             <p style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: #734c4c;">Portal ID : ${tenantId}</p>
             <p style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: #734c4c;">Email: ${user.email}</p>
             <p style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: #734c4c;">Password: ${plainTextPassword}</p>

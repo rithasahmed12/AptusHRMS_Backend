@@ -216,9 +216,9 @@ export class EmployeeService {
     domain: string,
     password: string,
   ) {
-    const baseUrl = process.env.NODE_ENV === 'production'
-  ? `https://${domain}.shoetopia.site`
-  : `http://${domain}.localhost:3000`;
+    const baseUrl = process.env.NODE_ENV === 'development'
+  ? `http://${domain}.${process.env.FRONTEND_URL}`
+  : `https://${domain}.shoetopia.site`
 
     await this.mailerService.sendMail({
       to: user.email,
