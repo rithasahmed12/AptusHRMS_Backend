@@ -5,7 +5,6 @@ import { Order } from './schemas/order.schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 
-
 @Injectable()
 export class StripeService {
   private stripe: Stripe;
@@ -18,34 +17,37 @@ export class StripeService {
     if (!process.env.STRIPE_SECRET_KEY) {
       throw new Error('STRIPE_SECRET_KEY environment variable is not set');
     }
-    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-    this.endpointSecret =
-      'whsec_34e1b82ca140f2ab81ed8a2562703fdf61ad48d647baec163116b9752ef9ab01';
-  }
-
-  // Filter out circular references
-  private filterCircularReferences(obj: any): any {
-    delete obj.socket;
-    delete obj.parser;
-
-    Object.keys(obj).forEach((key) => {
-      if (typeof obj[key] === 'object' && obj[key] !== null) {
-        this.filterCircularReferences(obj[key]);
-      }
+    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2024-04-10', // Updated to the latest API version
     });
-
-    return obj;
+    this.endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!this.endpointSecret) {
+      throw new Error('STRIPE_WEBHOOK_SECRET environment variable is not set');
+    }
   }
 
-  async createStripeSessionSubscription(body, res) {
+  private filterCircularReferences(obj: any): any {
+    const seen = new WeakSet();
+    return JSON.parse(JSON.stringify(obj, (key, value) => {
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) {
+          return;
+        }
+        seen.add(value);
+      }
+      return value;
+    }));
+  }
+
+  async createStripeSessionSubscription(body: any) {
     try {
       let customer;
       const userEmail = body.customer.email;
       const auth0UserId = userEmail;
 
       const frontendUrl = process.env.NODE_ENV === 'development' 
-      ? process.env.FRONTEND_URL 
-      : 'https://shoetopia.site/';
+        ? process.env.FRONTEND_URL 
+        : 'https://shoetopia.site/';
 
       const existingCustomers = await this.stripe.customers.list({
         email: userEmail,
@@ -65,28 +67,19 @@ export class StripeService {
           if (!returnUrl) {
             throw new Error('return_url is required and cannot be empty');
           }
-          const stripeSession = await this.stripe.billingPortal.sessions.create(
-            {
-              customer: customer.id,
-              return_url: returnUrl,
-            },
-          );
+          const stripeSession = await this.stripe.billingPortal.sessions.create({
+            customer: customer.id,
+            return_url: returnUrl,
+          });
 
-          return res
-            .status(409)
-            .json(
-              this.filterCircularReferences({ redirectUrl: stripeSession.url }),
-            );
+          return { redirectUrl: stripeSession.url };
         }
       } else {
         customer = await this.stripe.customers.create({
           email: userEmail,
-
           name: body.customer.name,
         });
       }
-
- 
 
       const session = await this.stripe.checkout.sessions.create({
         success_url: `${frontendUrl}purchase/success`,
@@ -116,9 +109,7 @@ export class StripeService {
         customer: customer.id,
       });
 
-      return res
-        .status(200)
-        .json(this.filterCircularReferences({ id: session.id }));
+      return { id: session.id };
     } catch (error) {
       console.error('Error creating Stripe session subscription:', error);
       throw new Error('Failed to create Stripe session subscription');
@@ -143,16 +134,22 @@ export class StripeService {
       case 'invoice.payment_succeeded':
         await this.createOrder(req);
         break;
+      case 'customer.created':
+        console.log('Customer created:', event.data.object);
+        break;
+      case 'customer.subscription.created':
+        console.log('Subscription created:', event.data.object);
+        break;
+      // Add more cases as needed
       default:
         console.log(`Unhandled event type ${event.type}`);
     }
   }
 
-  async createOrder(req) {
+  async createOrder(req: Request) {
     const body = req.app.locals.body;
 
-    console.log('body:',body);
-    
+    console.log('body:', body);
 
     req.app.locals.body = null;
 
@@ -168,7 +165,7 @@ export class StripeService {
         Date.now() + body.product.duration * 24 * 60 * 60 * 1000,
       ),
       plan: body.product.plan_name,
-      price:body.product.plan_price
+      price: body.product.plan_price
     });
   }
 }

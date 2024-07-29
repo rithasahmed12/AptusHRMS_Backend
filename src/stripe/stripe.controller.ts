@@ -1,5 +1,5 @@
-import { Body, Controller, Headers, Post, Req, Res, Session } from '@nestjs/common';
-import { Response } from 'express';
+import { Body, Controller, Headers, Post, Req, Res } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { StripeService } from './stripe.service';
 
 @Controller('payment')
@@ -8,53 +8,49 @@ export class StripeController {
 
   @Post('checkout-session')
   async createStripeSessionSubscription(
-    @Req() req:any,
+    @Req() req: Request,
     @Res() res: Response,
-     @Body() body: any
-    ) {
-
-      console.log(body);
-      
+    @Body() body: any
+  ) {
+    console.log(body);
 
     req.app.locals.body = body;  
 
-    const result = await this.stripeService.createStripeSessionSubscription(body, res);
-
-    if ('redirectUrl' in result) {
-      return res.status(409).json(result);
+    try {
+      const result = await this.stripeService.createStripeSessionSubscription(body);
+      res.json(result);
+    } catch (error) {
+      console.error('Error in createStripeSessionSubscription:', error);
+      res.status(500).json({ error: error.message });
     }
-    res.json(result);
   }
 
-  // stripe listen --forward-to localhost:3001/payment/webhook
   @Post('webhook')
   async handleWebhook(
-    @Req() req: any,
+    @Req() req: Request,
     @Res() res: Response,
     @Headers('stripe-signature') signature: string,
-
   ) {
     try {
-      await this.stripeService.handleWebhookEvent(req.body, signature, req);
+      await this.stripeService.handleWebhookEvent(req.rawBody, signature, req);
       res.status(200).json({ received: true });
     } catch (err) {
       console.error(`Webhooks Error: ${err.message}`);
-      return res.status(400).send(`Webhook Error: ${err.message}`);
+      res.status(400).send(`Webhook Error: ${err.message}`);
     }
   }
-
-  async getRawBody(req: any): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-      let data = '';
-      req.on('data', (chunk) => {
-        data += chunk;
-      });
-      req.on('end', () => {
-        resolve(Buffer.from(data));
-      });
-      req.on('error', (err) => {
-        reject(err);
-      });
-    });
-  }
 }
+// async getRawBody(req: any): Promise<Buffer> {
+//   return new Promise((resolve, reject) => {
+//     let data = '';
+//     req.on('data', (chunk) => {
+//       data += chunk;
+//     });
+//     req.on('end', () => {
+//       resolve(Buffer.from(data));
+//     });
+//     req.on('error', (err) => {
+//       reject(err);
+//     });
+//   });
+// }

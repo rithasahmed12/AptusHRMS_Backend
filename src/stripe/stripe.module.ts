@@ -16,15 +16,15 @@ import { JsonBodyMiddleware } from '../middlewares/json-body.middleware';
 })
 export class StripeModule implements NestModule {
   public configure(consumer: MiddlewareConsumer): void {
-      consumer
-          .apply(RawBodyMiddleware)
-          .forRoutes({
-              path: '/payment/webhook',
-              method: RequestMethod.POST,
-          })
-          .apply(JsonBodyMiddleware)
-          .forRoutes('*');
+    consumer
+      .apply(RawBodyMiddleware)
+      .forRoutes({
+        path: '/payment/webhook',
+        method: RequestMethod.POST,
+      })
+      .apply(JsonBodyMiddleware)
+      .forRoutes('*');
   }
 }
 
-export { Order }; 
+export { Order };
