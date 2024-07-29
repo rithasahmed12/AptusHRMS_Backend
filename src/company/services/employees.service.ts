@@ -216,7 +216,10 @@ export class EmployeeService {
     domain: string,
     password: string,
   ) {
-    const frontendUrl = `http://${domain}.localhost:3000`;
+    const baseUrl = process.env.NODE_ENV === 'production'
+  ? `https://${domain}.shoetopia.site`
+  : `http://${domain}.localhost:3000`;
+
     await this.mailerService.sendMail({
       to: user.email,
       subject: 'Welcome to Our Company',
@@ -231,7 +234,7 @@ export class EmployeeService {
               We are excited to have you on board. Below are your account details:
             </p>
             <p style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: #734c4c;">Portal URL:</p>
-            <a href="${frontendUrl}" style="color: #734c4c; text-decoration: underline;">${frontendUrl}</a>
+            <a href="${baseUrl}" style="color: #734c4c; text-decoration: underline;">${baseUrl}</a>
             <p style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: #734c4c;">Portal ID: ${tenantId}</p>
             <p style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: #734c4c;">Email: ${user.email}</p>
             <p style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: #734c4c;">Password: ${password}</p>
