@@ -32,6 +32,8 @@ export class StripeController {
     @Headers('stripe-signature') signature: string,
   ) {
     try {
+      console.log('req.headers:',signature);
+      
       await this.stripeService.handleWebhookEvent(req.rawBody, signature, req);
       res.status(200).json({ received: true });
     } catch (err) {
