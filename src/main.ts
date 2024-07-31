@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { Body, ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 import * as express from 'express';
 import { GlobalExceptionFilter } from './filters/global-exception.filters';
@@ -9,6 +9,7 @@ import { GlobalExceptionFilter } from './filters/global-exception.filters';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule,{bodyParser:false});
+  // Body
 
   app.use(express.json({
     verify: (req: any, res, buf) => {
