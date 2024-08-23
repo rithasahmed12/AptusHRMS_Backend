@@ -18,7 +18,7 @@ export class StripeService {
       throw new Error('STRIPE_SECRET_KEY environment variable is not set');
     }
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2024-04-10', // Updated to the latest API version
+      apiVersion: '2024-04-10', 
     });
     this.endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
     if (!this.endpointSecret) {

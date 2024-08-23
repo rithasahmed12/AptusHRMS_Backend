@@ -8,7 +8,7 @@ import { GlobalExceptionFilter } from './filters/global-exception.filters';
 
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule,{bodyParser:false});
+  const app = await NestFactory.create(AppModule,{rawBody:true});
   // Body
 
   app.use(express.json({
@@ -22,9 +22,9 @@ async function bootstrap() {
       if (!origin) return callback(null, true);
       
       const allowedOrigins = [
-        /^https?:\/\/(.+\.)?shoetopia\.site$/,  // Matches your domain and all subdomains
-        /^http:\/\/(.+\.)?localhost:3000$/,     // Matches localhost and all subdomains
-        'https://shoetopia.site'                // Allows requests from your main domain
+        /^https?:\/\/(.+\.)?shoetopia\.site$/, 
+        /^http:\/\/(.+\.)?localhost:3000$/,    
+        'https://shoetopia.site'                
       ];
       
       const allowed = allowedOrigins.some(allowedOrigin => {

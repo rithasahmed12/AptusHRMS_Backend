@@ -1,4 +1,4 @@
-import { Body, Controller, Headers, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Headers, Post, Req, Res, RawBodyRequest } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { StripeService } from './stripe.service';
 
@@ -27,7 +27,7 @@ export class StripeController {
 
   @Post('webhook')
   async handleWebhook(
-    @Req() req: Request,
+    @Req() req: RawBodyRequest<Request>,
     @Res() res: Response,
     @Headers('stripe-signature') signature: string,
   ) {
