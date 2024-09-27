@@ -59,10 +59,6 @@ export class AdminService {
     return `${companyName.toUpperCase()}_${Math.floor(1000 + Math.random() * 9000)}`
   }
 
-  async getRequests() {
-    return this.orderModel.find().sort({ updatedAt: -1 }).exec();
-  }
-
   async approveRequest(id: string) {
     const order = await this.orderModel.findById(id);
   
@@ -88,7 +84,7 @@ export class AdminService {
     await this.createTenantForOrder(updatedOrder, tenantId, hashedPassword);
   
     // Send approval email with plain text password
-    await this.sentApprovalMail(updatedOrder, tenantId, plainTextPassword);
+    await this.sentApprovalMail(updatedOrder, tenantId);
   }
 
   private async createTenantForOrder(order: Order, tenantId: string, hashedPassword: string) {
@@ -111,100 +107,68 @@ export class AdminService {
     }
   }
 
-  async sentApprovalMail(user: Order,tenantId:string,plainTextPassword:string) {
-
-    
+  async sentApprovalMail(user: Order, tenantId: string) {
     const domain = user.company_name.replace(/\s/g, '_');
-
-    const baseUrl = process.env.NODE_ENV === 'development'
-    ? `http://${domain}.${process.env.FRONTEND_URL}`
-    : `https://${domain}.shoetopia.site`
-
-    await this.mailerService.sendMail({
-      to: user.email,
-      subject: 'Your Request Has Been Approved',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-          <header style="text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 20px; margin-bottom: 20px;">
-            <h1 style="color: #734c4c;">Request Approved</h1>
-          </header>
-          <main>
-            <p style="font-size: 16px; margin-bottom: 20px;">Dear ${user.username},</p>
-            <p style="font-size: 16px; margin-bottom: 20px;">
-              We are pleased to inform you that your request has been approved.
-            </p>
-            <p style="font-size: 16px; margin-bottom: 20px;">
-              Here are your account details:
-            </p>
-            <span style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: #734c4c;">Domain:</span>
-            <a href="${baseUrl}" style="color: #734c4c; text-decoration: underline;">${baseUrl}</a>
-            <p style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: #734c4c;">Portal ID : ${tenantId}</p>
-            <p style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: #734c4c;">Email: ${user.email}</p>
-            <p style="font-size: 16px; font-weight: bold; margin-bottom: 20px; color: #734c4c;">Password: ${plainTextPassword}</p>
-            <p style="font-size: 16px; margin-bottom: 20px;">
-              Please use these credentials to access your account.
-            </p>
-            <p style="font-size: 16px; margin-bottom: 20px;">Regards,</p>
-            <p style="font-size: 16px; font-weight: bold;">Your Company</p>
-          </main>
-          <footer style="border-top: 1px solid #ddd; padding-top: 20px; margin-top: 20px; text-align: center;">
-            <p style="font-size: 14px; color: #999;">If you have any questions, please contact our support team.</p>
-            <p style="font-size: 14px; color: #999;">&copy; 2024 Your Company. All rights reserved.</p>
-          </footer>
-        </div>
-      `,
-    });
-  }
-
-  async declineRequest(id: string,reason:string) {
-    const updatedOrder = await this.orderModel.findByIdAndUpdate(
-      id,
-      { service_status: 'Declined' },
-      { new: true },
-    );
-
-    if (!updatedOrder) {
-      throw new NotFoundException('Order not found');
-    }
-
-    this.sendDeclineMail(updatedOrder,reason);
-  }
-
-  async sendDeclineMail(user: Order, declineReason: string) {    
-    await this.mailerService.sendMail({
-      to: user.email,
-      subject: 'Purchase Decline Request',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-          <header style="text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 20px; margin-bottom: 20px;">
-            <h1 style="color: #734c4c;">Purchase Decline Request</h1>
-          </header>
-          <main>
-            <p style="font-size: 16px; margin-bottom: 20px;">Dear ${user.username},</p>
-            <p style="font-size: 16px; margin-bottom: 20px;">
-              We regret to inform you that your recent purchase request has been declined.
-            </p>
-            <p style="font-size: 16px; margin-bottom: 20px;">
-              Your payment will be declined within 2 to 4 business days. You may need to verify your payment details or try another payment method.
-            </p>
-            <p style="font-size: 16px; margin-bottom: 20px;">
-              <strong>Reason for Decline:</strong> ${declineReason}
-            </p>
-            <p style="font-size: 16px; margin-bottom: 20px;">
-              If you have any questions or need further assistance, please contact our support team.
-            </p>
-            <p style="font-size: 16px; margin-bottom: 20px;">Regards,</p>
-            <p style="font-size: 16px; font-weight: bold;">AptusHr</p>
-          </main>
-          <footer style="border-top: 1px solid #ddd; padding-top: 20px; margin-top: 20px; text-align: center;">
-            <p style="font-size: 14px; color: #999;">If you have any questions, please contact our support team.</p>
-            <p style="font-size: 14px; color: #999;">&copy; 2024 Your Company. All rights reserved.</p>
-          </footer>
-        </div>
-      `,
-    });
-  }
   
+    const baseUrl = process.env.NODE_ENV === 'development'
+      ? `http://${domain}.${process.env.FRONTEND_URL}`
+      : `https://${domain}.shoetopia.site`;
+  
+    await this.mailerService.sendMail({
+      to: user.email,
+      subject: 'Your HRMS Service Request Has Been Approved',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+          <header style="text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 20px; margin-bottom: 20px;">
+            <h1 style="color: #734c4c;">HRMS Service Activated</h1>
+          </header>
+          <main>
+            <p style="font-size: 16px; margin-bottom: 20px;">Dear ${user.username},</p>
+            <p style="font-size: 16px; margin-bottom: 20px;">
+              We are pleased to inform you that your HRMS service has been successfully activated. Thank you for choosing our Professional plan.
+            </p>
+            <p style="font-size: 16px; margin-bottom: 20px;">
+              Here are the details of your HRMS service:
+            </p>
+            <p style="font-size: 16px; margin-bottom: 10px;">
+              <span style="font-weight: bold; color: #734c4c;">Company Name:</span> ${user.company_name}
+            </p>
+            <p style="font-size: 16px; margin-bottom: 10px;">
+              <span style="font-weight: bold; color: #734c4c;">Plan:</span> ${user.plan}
+            </p>
+            <p style="font-size: 16px; margin-bottom: 10px;">
+              <span style="font-weight: bold; color: #734c4c;">Order Number:</span> ${user.order_no}
+            </p>
+            <p style="font-size: 16px; margin-bottom: 10px;">
+              <span style="font-weight: bold; color: #734c4c;">Order Date:</span> ${new Date(user.order_date).toLocaleDateString()}
+            </p>
+            <p style="font-size: 16px; margin-bottom: 10px;">
+              <span style="font-weight: bold; color: #734c4c;">Expiry Date:</span> ${new Date(user.expiry_date).toLocaleDateString()}
+            </p>
+            <p style="font-size: 16px; margin-bottom: 10px;">
+              <span style="font-weight: bold; color: #734c4c;">Portal ID:</span> ${tenantId}
+            </p>
+            <p style="font-size: 16px; margin-bottom: 20px;">
+              <span style="font-weight: bold; color: #734c4c;">Your HRMS Portal:</span> 
+              <a href="${baseUrl}" style="color: #734c4c; text-decoration: underline;">${baseUrl}</a>
+            </p>
+            <p style="font-size: 16px; margin-bottom: 20px;">
+              To access your HRMS portal, please use the login credentials you provided during the purchase process.
+            </p>
+            <p style="font-size: 16px; margin-bottom: 20px;">
+              If you have any questions or need assistance, please don't hesitate to contact our support team.
+            </p>
+            <p style="font-size: 16px; margin-bottom: 20px;">Best regards,</p>
+            <p style="font-size: 16px; font-weight: bold;">The Shoetopia HRMS Team</p>
+          </main>
+          <footer style="border-top: 1px solid #ddd; padding-top: 20px; margin-top: 20px; text-align: center;">
+            <p style="font-size: 14px; color: #999;">For support, please contact our team at support@shoetopia.com</p>
+            <p style="font-size: 14px; color: #999;">&copy; 2024 Shoetopia HRMS. All rights reserved.</p>
+          </footer>
+        </div>
+      `,
+    });
+  } 
 
   async getCustomers() {
     return this.orderModel.find({ service_status: 'Approved' }).sort({ updatedAt: -1 }).exec();

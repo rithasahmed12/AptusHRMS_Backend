@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { JwtModule } from '@nestjs/jwt';
@@ -15,12 +15,12 @@ import { TenantModule } from 'src/tenant/tenant.module';
   imports: [JwtModule.register({
     secret: `${process.env.JWT_SECRET}`,
     signOptions: { expiresIn: '3600s' },
-  }),
-  StripeModule,
+  }), 
+  forwardRef(() => StripeModule),
   MongooseModule.forFeature([{name:"Plans",schema:PlanSchema}]),
   TenantModule
 ],
-  exports:[MongooseModule]
+  exports:[MongooseModule,AdminService]
   
 })
 export class AdminModule {}

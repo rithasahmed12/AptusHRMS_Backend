@@ -20,24 +20,6 @@ export class AdminController {
     }
 
     @UseGuards(JwtGuard)
-    @Get('requests')
-    async getRequests() {
-        return this.adminService.getRequests();
-    }
-
-    @UseGuards(JwtGuard)
-    @Patch('approveRequest/:id')
-    async approveRequest(@Param('id') id: string) {
-      return this.adminService.approveRequest(id);
-    }
-
-    @UseGuards(JwtGuard)
-    @Patch('declineRequest/:id')
-    async declineRequest(@Param('id') id: string,@Body('reason') reason: string) {
-      return this.adminService.declineRequest(id,reason);
-    }
-
-    @UseGuards(JwtGuard)
     @Get('customers')
     async getCustomers(){
         return this.adminService.getCustomers();

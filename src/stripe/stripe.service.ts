@@ -82,7 +82,7 @@ export class StripeService {
       }
 
       const session = await this.stripe.checkout.sessions.create({
-        success_url: `${frontendUrl}purchase/success`,
+        success_url: `http://localhost:3001/payment/success`,
         cancel_url: `${frontendUrl}purchase/plan`,
         payment_method_types: ['card'],
         mode: 'subscription',
@@ -153,7 +153,7 @@ export class StripeService {
 
     req.app.locals.body = null;
 
-    await this.order.create({
+    const order = await this.order.create({
       username: body.customer.name,
       phone: Number(body.customer.mobile),
       company_name: body.customer.domain,
@@ -167,5 +167,7 @@ export class StripeService {
       plan: body.product.plan_name,
       price: body.product.plan_price
     });
+
+    return await order.save();
   }
 }
