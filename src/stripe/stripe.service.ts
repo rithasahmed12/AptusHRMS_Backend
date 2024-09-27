@@ -105,11 +105,18 @@ export class StripeService {
         ],
         metadata: {
           userId: auth0UserId,
+          customerEmail: userEmail,
+          customerName: body.customer.name,
+          customerMobile: body.customer.mobile,
+          customerDomain: body.customer.domain,
+          planName: body.product.plan_name,
+          planPrice: body.product.plan_price,
+          planDuration: body.product.duration,
         },
         customer: customer.id,
       });
 
-      return { id: session.id };
+      return this.filterCircularReferences({ id: session.id });
     } catch (error) {
       console.error('Error creating Stripe session subscription:', error);
       throw new Error('Failed to create Stripe session subscription');

@@ -19,15 +19,19 @@ export class StripeController {
   ) {
     console.log(body);
 
-    req.app.locals.body = body;  
+    req.app.locals.body = body;
 
     try {
       const result = await this.stripeService.createStripeSessionSubscription(body);
-      console.log('result:',result)
-      if (result.redirectUrl) {
-        res.status(409).json(result);
+      console.log('result:', result);
+      
+      // Remove circular references before sending the response
+      const sanitizedResult = JSON.parse(JSON.stringify(result, this.getCircularReplacer()));
+      
+      if (sanitizedResult.redirectUrl) {
+        res.status(409).json(sanitizedResult);
       } else {
-        res.json(result);
+        res.json(sanitizedResult);
       }
     } catch (error) {
       console.error('Error in createStripeSessionSubscription:', error);
@@ -58,6 +62,21 @@ async success(@Req() req:Request,@Res() res:Response){
  await this.adminService.approveRequest(order._id.toString());
  res.redirect(`${process.env.FRONTEND_URL}purchase/success`)
 }
+
+ // Helper method to remove circular references
+ private getCircularReplacer() {
+  const seen = new WeakSet();
+  return (key:any, value:any) => {
+    if (typeof value === "object" && value !== null) {
+      if (seen.has(value)) {
+        return;
+      }
+      seen.add(value);
+    }
+    return value;
+  };
+}
+
 }
 
 
