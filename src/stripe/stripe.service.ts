@@ -82,7 +82,7 @@ export class StripeService {
       }
 
       const session = await this.stripe.checkout.sessions.create({
-        success_url: `http://localhost:3001/payment/success`,
+        success_url: `https://api.shoetopia.site/payment/success`,
         cancel_url: `${frontendUrl}purchase/plan`,
         payment_method_types: ['card'],
         mode: 'subscription',
