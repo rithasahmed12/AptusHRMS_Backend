@@ -1,73 +1,47 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# HRMS SaaS Application
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Overview
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Welcome to our comprehensive **HRMS SaaS solution** that streamlines your company's HR processes. This HRMS platform offers a wide range of features to help businesses efficiently manage their HR activities. Here's what you get:
 
-## Description
+- **Employee Onboarding**: Simplify the process of bringing new employees into your company.
+- **Employee Self-Service Portal**: Empower employees with easy access to their profiles, documents, and HR tasks.
+- **Leave Management**: Manage employee leaves with a smooth approval process.
+- **Holiday Management**: Set and manage holidays specific to your organization.
+- **Work Shifts**: Organize and assign shifts to employees based on your company’s needs.
+- **Attendance Management**: Track and monitor attendance records with ease.
+- **Payroll Automation**: Automate the entire payroll process, ensuring accuracy and timely payouts.
+- **Job Recruitment Management**: Manage job postings, applications, and hiring processes all in one place.
+- **Asset Management**: Track and manage company assets assigned to employees.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## How to Use the Application
 
-## Installation
+Follow the step-by-step guide below to start using the HRMS application:
 
-```bash
-$ npm install
-```
+### 1. Visit the Homepage
+- Navigate to the HRMS homepage.
+- From here, click on the "**Get Yours Now**" button or go directly to the `/purchase` page.
 
-## Running the app
+### 2. Registration and Payment
+- Complete the registration process by filling in your company’s details.
+- Once registered, proceed with the payment process integrated with **Stripe**.
+  
+  **For Indian Transactions**: You can use the following **test card** for Stripe:
+  
+  **Card Number**: 4242 4242 4242 4242  
+  **Expiry Date**: 12/34  
+  **CVV**: 123  
+  **ZIP Code**: 560001
+  
+- After successful payment, you will receive an email confirmation with your **Portal ID**.
 
-```bash
-# development
-$ npm run start
+### 3. Access Your Portal
+- Once you receive your **Portal ID**, navigate to your company’s subdomain portal using the ID provided.
+- Log in using the credentials created during registration.
 
-# watch mode
-$ npm run start:dev
+### 4. Explore the Features
+- Now you can explore and manage the HRMS features tailored to your company. You can onboard employees, manage leaves, set work shifts, and much more.
 
-# production mode
-$ npm run start:prod
-```
+Enjoy the streamlined HR processes with our HRMS SaaS application!
 
-## Test
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+---
